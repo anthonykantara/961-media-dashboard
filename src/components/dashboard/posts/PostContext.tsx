@@ -1,6 +1,8 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode, useEffect } from 'react';
 import { Post } from './types';
 import { initialPosts } from './mockData';
+
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5001';
 
 interface PostContextType {
   posts: Post[];
@@ -14,6 +16,23 @@ const PostContext = createContext<PostContextType | undefined>(undefined);
 
 export function PostProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
+
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/articles`);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data)) {
+            setPosts(data);
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching articles from backend:', error);
+      }
+    };
+    fetchPosts();
+  }, []);
 
   const addPost = (newPostData: Omit<Post, 'id' | 'views' | 'shares' | 'date' | 'time'> & { date?: string; time?: string }) => {
     const today = new Date();
@@ -30,11 +49,28 @@ export function PostProvider({ children }: { children: ReactNode }) {
     };
 
     setPosts(prev => [post, ...prev]);
+
+    fetch(`${API_BASE}/api/articles`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(post),
+    }).catch(error => {
+      console.error('Error adding post to backend:', error);
+    });
+
     return post;
   };
 
   const deletePost = (id: string) => {
     setPosts(prev => prev.filter(p => p.id !== id));
+
+    fetch(`${API_BASE}/api/articles/${id}`, {
+      method: 'DELETE',
+    }).catch(error => {
+      console.error('Error deleting post on backend:', error);
+    });
   };
 
   const updatePost = (id: string, updates: Partial<Post>) => {
@@ -54,6 +90,16 @@ export function PostProvider({ children }: { children: ReactNode }) {
       }
       return p;
     }));
+
+    fetch(`${API_BASE}/api/articles/${id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updates),
+    }).catch(error => {
+      console.error('Error updating post on backend:', error);
+    });
   };
 
   const getPost = (id: string) => {
