@@ -34,7 +34,14 @@ const DEFAULT_PROMPTS: Record<PromptType, string> = {
 
 export default function AIPromptsPage() {
   const [selectedPromptType, setSelectedPromptType] = useState<PromptType>('main_article');
-  const [prompts, setPrompts] = useState<Record<PromptType, string>>(DEFAULT_PROMPTS);
+  const [prompts, setPrompts] = useState<Record<PromptType, string>>(() => {
+    try {
+      const saved = localStorage.getItem('961_ai_prompts');
+      return saved ? { ...DEFAULT_PROMPTS, ...JSON.parse(saved) } : DEFAULT_PROMPTS;
+    } catch {
+      return DEFAULT_PROMPTS;
+    }
+  });
   const [savedSuccess, setSavedSuccess] = useState(false);
 
   const handlePromptChange = (value: string) => {
@@ -45,6 +52,11 @@ export default function AIPromptsPage() {
   };
 
   const handleSave = () => {
+    try {
+      localStorage.setItem('961_ai_prompts', JSON.stringify(prompts));
+    } catch (e) {
+      console.error('Failed to save prompts to localStorage:', e);
+    }
     setSavedSuccess(true);
     setTimeout(() => {
       setSavedSuccess(false);
