@@ -1,11 +1,10 @@
-import { useState, useMemo } from 'react';
-import { Page, SortField, SortDirection } from './types';
+import { useState } from 'react';
+import { Page, SortField } from './types';
+import { useDataTable } from '../../../hooks/useDataTable';
 
 export function usePages(initialPagesList: Page[]) {
   const [pages, setPages] = useState<Page[]>(initialPagesList);
   const [selectedLanguage, setSelectedLanguage] = useState<string>('all');
-  const [sortField, setSortField] = useState<SortField | null>(null);
-  const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
 
   const addPage = (newPageData: Omit<Page, 'id' | 'date' | 'time'>) => {
     const now = new Date();
@@ -30,55 +29,40 @@ export function usePages(initialPagesList: Page[]) {
     setPages(prev => prev.filter(p => p.id !== id));
   };
 
-  const filteredPages = useMemo(() => {
-    return pages.filter(page => {
-      const matchesLang = selectedLanguage === 'all' || (page.language || 'en') === selectedLanguage;
-      return matchesLang;
-    });
-  }, [pages, selectedLanguage]);
-
-  const handleSort = (field: SortField) => {
-    if (sortField === field) {
-      setSortDirection(prev => prev === 'asc' ? 'desc' : 'asc');
-    } else {
-      setSortField(field);
-      setSortDirection('desc');
-    }
+  const filterFn = (page: Page) => {
+    return selectedLanguage === 'all' || (page.language || 'en') === selectedLanguage;
   };
 
-  const sortedPages = useMemo(() => {
-    const sorted = [...filteredPages].sort((a, b) => {
-      if (!sortField) return 0;
-      
-      let valA: any = a[sortField];
-      let valB: any = b[sortField];
+  const customComparator = (a: Page, b: Page, sortField: string | keyof Page | null, sortDirection: 'asc' | 'desc') => {
+    if (!sortField) return 0;
+    if (sortField === 'date') {
+      const dateA = new Date(`${a.date} ${a.time}`).getTime();
+      const dateB = new Date(`${b.date} ${b.time}`).getTime();
+      return sortDirection === 'asc' ? dateA - dateB : dateB - dateA;
+    }
+    return 0;
+  };
 
-      if (sortField === 'date') {
-        const dateA = new Date(`${a.date} ${a.time}`);
-        const dateB = new Date(`${b.date} ${b.time}`);
-        return sortDirection === 'asc' ? dateA.getTime() - dateB.getTime() : dateB.getTime() - dateA.getTime();
-      }
-
-      if (valA < valB) return sortDirection === 'asc' ? -1 : 1;
-      if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
-      return 0;
-    });
-    return sorted;
-  }, [filteredPages, sortField, sortDirection]);
+  const dataTable = useDataTable<Page>({
+    data: pages,
+    filterFn,
+    customComparator,
+  });
 
   return {
     pages,
     selectedLanguage,
     setSelectedLanguage,
-    sortField,
-    setSortField,
-    sortDirection,
-    setSortDirection,
-    filteredPages: sortedPages,
-    handleSort,
+    sortField: dataTable.sortField as SortField | null,
+    setSortField: dataTable.setSortField,
+    sortDirection: dataTable.sortDirection,
+    setSortDirection: dataTable.setSortDirection,
+    filteredPages: dataTable.filteredData,
+    handleSort: dataTable.handleSort,
     addPage,
     updatePage,
-    deletePage
+    deletePage,
+    isLoading: dataTable.isLoading,
+    setIsLoading: dataTable.setIsLoading,
   };
 }
-

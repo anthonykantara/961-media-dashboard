@@ -1,16 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { TeamMember } from './types';
+import { useDataTable } from '../../../hooks/useDataTable';
 
-export function useTeam(initialTeam: TeamMember[]) {
-  const [team, setTeam] = useState<TeamMember[]>(initialTeam);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredTeam = useMemo(() => {
-    return team.filter(member => 
-      member.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [team, searchQuery]);
+export function useTeam(initialTeamList: TeamMember[]) {
+  const [team, setTeam] = useState<TeamMember[]>(initialTeamList);
 
   const addMember = (username: string, role: TeamMember['role']) => {
     const member: TeamMember = {
@@ -29,11 +22,22 @@ export function useTeam(initialTeam: TeamMember[]) {
     setTeam(prev => prev.filter(m => m.id !== id));
   };
 
+  const dataTable = useDataTable<TeamMember>({
+    data: team,
+    searchFields: ['username', 'name', 'role'],
+  });
+
   return {
     team,
-    searchQuery, setSearchQuery,
-    filteredTeam,
+    searchQuery: dataTable.searchQuery,
+    setSearchQuery: dataTable.setSearchQuery,
+    filteredTeam: dataTable.filteredData,
     addMember,
-    removeMember
+    removeMember,
+    sortField: dataTable.sortField,
+    sortDirection: dataTable.sortDirection,
+    handleSort: dataTable.handleSort,
+    isLoading: dataTable.isLoading,
+    setIsLoading: dataTable.setIsLoading,
   };
 }

@@ -3,20 +3,24 @@ import {
   Search, 
   User
 } from 'lucide-react';
-import { useState } from 'react';
 import { useTeamContext } from './team/TeamContext';
 import TeamTable from './team/TeamTable';
 import TeamModal from './team/TeamModal';
+import { useModal } from '../../hooks/useModal';
 
 export default function TeamPage() {
   const {
     searchQuery, setSearchQuery,
     filteredTeam,
     addMember,
-    removeMember
+    removeMember,
+    sortField,
+    sortDirection,
+    handleSort,
+    isLoading
   } = useTeamContext();
 
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const addModal = useModal();
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-6 pb-12">
@@ -32,8 +36,8 @@ export default function TeamPage() {
           />
         </div>
         <button 
-          onClick={() => setIsModalOpen(true)}
-          className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold text-xs hover:bg-primary transition-all flex items-center gap-2 shrink-0"
+          onClick={() => addModal.openModal()}
+          className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold text-xs hover:bg-primary transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           <span>Add Team Member</span>
@@ -43,9 +47,13 @@ export default function TeamPage() {
       <TeamTable 
         members={filteredTeam} 
         onRemove={removeMember} 
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        isLoading={isLoading}
       />
 
-      {filteredTeam.length === 0 && (
+      {!isLoading && filteredTeam.length === 0 && (
         <div className="p-16 text-center bg-white rounded-xl border border-gray-200">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
             <User className="w-6 h-6 text-gray-300" />
@@ -56,11 +64,11 @@ export default function TeamPage() {
       )}
 
       <TeamModal 
-        isOpen={isModalOpen} 
-        onClose={() => setIsModalOpen(false)} 
+        isOpen={addModal.isOpen} 
+        onClose={addModal.closeModal} 
         onAdd={(username, role) => {
           addMember(username, role);
-          setIsModalOpen(false);
+          addModal.closeModal();
         }} 
       />
     </div>

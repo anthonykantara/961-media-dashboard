@@ -7,6 +7,7 @@ import PageTable from './pages/PageTable';
 import { AddPageModal, EditPageModal } from './pages/PageModals';
 import { Page } from './pages/types';
 import { SUPPORTED_LANGUAGES } from '../../types/location';
+import { useModal } from '../../hooks/useModal';
 
 export default function PagesPage() {
   const [headerSlot, setHeaderSlot] = useState<HTMLElement | null>(null);
@@ -25,16 +26,15 @@ export default function PagesPage() {
     handleSort,
     addPage,
     updatePage,
-    deletePage
+    deletePage,
+    isLoading
   } = usePages(initialPages);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [pageToEdit, setPageToEdit] = useState<Page | null>(null);
+  const addModal = useModal();
+  const editModal = useModal<Page>();
 
   const handleEditClick = (page: Page) => {
-    setPageToEdit(page);
-    setIsEditModalOpen(true);
+    editModal.openModal(page);
   };
 
   // Language count breakdown
@@ -50,7 +50,7 @@ export default function PagesPage() {
       {headerSlot && createPortal(
         <button
           type="button"
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => addModal.openModal()}
           className="flex items-center gap-2 px-4 py-2 bg-[#FF0000] hover:bg-red-700 text-white rounded-xl text-xs font-semibold transition-colors cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -59,7 +59,7 @@ export default function PagesPage() {
         headerSlot
       )}
 
-      {/* Language Filter Tabs (No search bar as requested) */}
+      {/* Language Filter Tabs */}
       <div className="flex items-center justify-between gap-4 border-b border-gray-200 pb-3">
         <div className="flex items-center gap-2 overflow-x-auto">
           <button
@@ -101,10 +101,11 @@ export default function PagesPage() {
         onSort={handleSort}
         onEdit={handleEditClick}
         onDelete={deletePage}
+        isLoading={isLoading}
       />
 
       {/* Empty State */}
-      {filteredPages.length === 0 && (
+      {!isLoading && filteredPages.length === 0 && (
         <div className="p-16 text-center bg-white rounded-xl border border-gray-200">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
             <FileText className="w-6 h-6 text-gray-300" />
@@ -116,19 +117,18 @@ export default function PagesPage() {
 
       {/* Modals */}
       <AddPageModal 
-        isOpen={isAddModalOpen}
-        onClose={() => setIsAddModalOpen(false)}
+        isOpen={addModal.isOpen}
+        onClose={addModal.closeModal}
         onAdd={addPage}
         initialLanguage={selectedLanguage !== 'all' ? selectedLanguage : 'en'}
       />
 
       <EditPageModal 
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-        pageToEdit={pageToEdit}
+        isOpen={editModal.isOpen}
+        onClose={editModal.closeModal}
+        pageToEdit={editModal.data}
         onUpdate={updatePage}
       />
     </div>
   );
 }
-

@@ -1,51 +1,52 @@
-import { useState, useMemo } from 'react';
+import { useState } from 'react';
 import { Category } from './types';
+import { useDataTable } from '../../../hooks/useDataTable';
 
-export function useCategories(initialCategories: Category[]) {
-  const [categories, setCategories] = useState<Category[]>(initialCategories);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredCategories = useMemo(() => {
-    return categories.filter(cat => 
-      cat.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      cat.slug.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [categories, searchQuery]);
+export function useCategories(initialCategoriesList: Category[]) {
+  const [categories, setCategories] = useState<Category[]>(initialCategoriesList);
 
   const addCategory = (category: Omit<Category, 'id' | 'count'>) => {
-    const newCat: Category = {
-      id: Math.random().toString(36).substr(2, 9),
+    const newCategory: Category = {
       ...category,
-      count: 0
+      id: `cat-${Date.now()}`,
+      count: 0,
     };
-    setCategories(prev => [newCat, ...prev]);
-  };
-
-  const deleteCategory = (id: string, transferToId: string) => {
-    const categoryToDelete = categories.find(c => c.id === id);
-    if (!categoryToDelete) return;
-
-    setCategories(prev => prev
-      .filter(cat => cat.id !== id)
-      .map(cat => {
-        if (cat.id === transferToId) {
-          return { ...cat, count: cat.count + categoryToDelete.count };
-        }
-        return cat;
-      })
-    );
+    setCategories(prev => [...prev, newCategory]);
   };
 
   const updateCategory = (id: string, updatedFields: Partial<Omit<Category, 'id'>>) => {
     setCategories(prev => prev.map(cat => cat.id === id ? { ...cat, ...updatedFields } : cat));
   };
 
+  const deleteCategory = (id: string, transferToId: string) => {
+    const categoryToDelete = categories.find(c => c.id === id);
+    if (!categoryToDelete) return;
+
+    const countToTransfer = categoryToDelete.count;
+
+    setCategories(prev => prev
+      .filter(c => c.id !== id)
+      .map(c => c.id === transferToId ? { ...c, count: c.count + countToTransfer } : c)
+    );
+  };
+
+  const dataTable = useDataTable<Category>({
+    data: categories,
+    searchFields: ['name', 'slug', 'description'],
+  });
+
   return {
-    categories,
-    searchQuery, setSearchQuery,
-    filteredCategories,
+    searchQuery: dataTable.searchQuery,
+    setSearchQuery: dataTable.setSearchQuery,
+    filteredCategories: dataTable.filteredData,
     addCategory,
     updateCategory,
-    deleteCategory
+    deleteCategory,
+    categories,
+    sortField: dataTable.sortField,
+    sortDirection: dataTable.sortDirection,
+    handleSort: dataTable.handleSort,
+    isLoading: dataTable.isLoading,
+    setIsLoading: dataTable.setIsLoading,
   };
 }
