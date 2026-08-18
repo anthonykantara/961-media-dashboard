@@ -3,7 +3,7 @@ import React from 'react';
 export function Skeleton({ className = '', ...props }: React.HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={`animate-pulse rounded-lg bg-gray-200/80 dark:bg-gray-800/80 sepia:bg-[#E4DAC8] ${className}`}
+      className={`animate-pulse rounded-lg bg-gray-200/80 ${className}`}
       {...props}
     />
   );
@@ -19,7 +19,7 @@ export function ArticleCardSkeleton({ className = '' }: { className?: string; ke
 
       {/* Top Left Badge Shimmer */}
       <div className="absolute top-2.5 left-2.5 z-10">
-        <Skeleton className="h-4 w-12 bg-white/20 dark:bg-gray-700/50 backdrop-blur-xs rounded" />
+        <Skeleton className="h-4 w-12 bg-white/20 backdrop-blur-xs rounded" />
       </div>
 
       {/* Bottom Gradient Area with Text Line Shimmers */}
@@ -51,7 +51,7 @@ export function TrendingRowSkeleton() {
 
 export function ForYouRowSkeleton() {
   return (
-    <section className="py-10 relative bg-gray-50/70 dark:bg-white/5 sepia:bg-black/5 transition-colors">
+    <section className="py-10 relative bg-gray-50/70 transition-colors">
       <div className="max-w-[1400px] mx-auto px-4">
         {/* Title Shimmer */}
         <div className="flex justify-center mb-8">
@@ -103,7 +103,7 @@ export function ArticlePageSkeleton() {
       </div>
 
       {/* Author Bar */}
-      <div className="flex items-center gap-4 py-4 border-y border-gray-100 dark:border-gray-800 sepia:border-[#E0D4C0]">
+      <div className="flex items-center gap-4 py-4 border-y border-gray-100">
         <Skeleton className="w-12 h-12 rounded-full shrink-0" />
         <div className="space-y-2">
           <Skeleton className="h-4 w-36 rounded" />
@@ -124,7 +124,7 @@ export function ArticlePageSkeleton() {
       </div>
 
       {/* Read Also Box Skeleton */}
-      <div className="p-4 bg-gray-50 dark:bg-white/5 sepia:bg-black/5 rounded-xl flex items-center gap-3">
+      <div className="p-4 bg-gray-50 rounded-xl flex items-center gap-3">
         <Skeleton className="h-4 w-20 rounded" />
         <Skeleton className="h-4 flex-1 rounded" />
       </div>
@@ -138,7 +138,7 @@ export function ArticlePageSkeleton() {
       </div>
 
       {/* Related Stories Header & Cards */}
-      <div className="pt-12 border-t border-gray-100 dark:border-gray-800 sepia:border-[#E0D4C0] space-y-6">
+      <div className="pt-12 border-t border-gray-100 space-y-6">
         <Skeleton className="h-7 w-48 rounded-xl" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {Array.from({ length: 3 }).map((_, i) => (
@@ -160,7 +160,7 @@ export function CategoryPageSkeleton() {
         <Skeleton className="h-4 w-full max-w-xl rounded" />
       </div>
 
-      <div className="h-px w-full bg-gray-100 dark:bg-gray-800 sepia:bg-[#E0D4C0] my-8" />
+      <div className="h-px w-full bg-gray-100 my-8" />
 
       {/* Article Cards Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -176,7 +176,7 @@ export function AuthorPageSkeleton() {
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 md:py-16 space-y-10 animate-pulse">
       {/* Author Card */}
-      <div className="flex flex-col md:flex-row gap-8 items-start bg-gray-50/50 dark:bg-white/5 p-8 rounded-3xl border border-gray-100 dark:border-gray-800">
+      <div className="flex flex-col md:flex-row gap-8 items-start bg-gray-50/50 p-8 rounded-3xl border border-gray-100">
         <Skeleton className="w-32 h-32 rounded-full shrink-0" />
         <div className="space-y-3 flex-1">
           <Skeleton className="h-8 w-48 rounded-lg" />
