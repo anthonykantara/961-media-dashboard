@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
 import { MediaItem, MediaType, SortOption } from './types';
+import { useDataTable } from '../../../hooks/useDataTable';
 
 export function useMedia(initialData: MediaItem[]) {
   const [media, setMedia] = useState<MediaItem[]>(initialData);
   const [currentFolderId, setCurrentFolderId] = useState<string | null>(null);
-  const [searchQuery, setSearchQuery] = useState('');
   const [filterType, setFilterType] = useState<MediaType | 'all'>('all');
   const [linkFilter, setLinkFilter] = useState<'all' | 'linked' | 'unlinked'>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -31,51 +31,74 @@ export function useMedia(initialData: MediaItem[]) {
     return path;
   }, [currentFolderId, media]);
 
-  const filteredMedia = useMemo(() => {
-    let result = media.filter(item => {
-      // Folder navigation logic
-      const isCorrectFolder = item.parentId === currentFolderId;
-      
-      // Search logic
-      const matchesSearch = item.name.toLowerCase().includes(searchQuery.toLowerCase());
-      
-      // Type filter logic
-      const matchesType = filterType === 'all' || item.type === filterType;
-      
-      // Link filter logic
-      let matchesLink = true;
-      if (item.type !== 'folder') {
-        const isLinked = item.linkedTo && item.linkedTo.length > 0;
-        if (linkFilter === 'linked') matchesLink = !!isLinked;
-        if (linkFilter === 'unlinked') matchesLink = !isLinked;
+  const filterFn = (item: MediaItem) => {
+    const isCorrectFolder = item.parentId === currentFolderId;
+    const matchesType = filterType === 'all' || item.type === filterType;
+
+    let matchesLink = true;
+    if (item.type !== 'folder') {
+      const isLinked = item.linkedTo && item.linkedTo.length > 0;
+      if (linkFilter === 'linked') matchesLink = !!isLinked;
+      if (linkFilter === 'unlinked') matchesLink = !isLinked;
+    }
+
+    return isCorrectFolder && matchesType && matchesLink;
+  };
+
+  const customComparator = (
+    a: MediaItem,
+    b: MediaItem,
+    sortField: string | keyof MediaItem | null,
+    sortDirection: 'asc' | 'desc'
+  ) => {
+    // Folders stay pinned at top of results regardless of sort
+    if (a.type === 'folder' && b.type !== 'folder') return -1;
+    if (a.type !== 'folder' && b.type === 'folder') return 1;
+
+    // If table column header sort is active, sort by sortField & sortDirection
+    if (sortField) {
+      if (sortField === 'createdAt') {
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return sortDirection === 'asc' ? timeA - timeB : timeB - timeA;
       }
-
-      return isCorrectFolder && matchesSearch && matchesType && matchesLink;
-    });
-
-    // Sorting logic (folders stay at top, sorted amongst themselves)
-    result.sort((a, b) => {
-      if (a.type === 'folder' && b.type !== 'folder') return -1;
-      if (a.type !== 'folder' && b.type === 'folder') return 1;
-
-      switch (sortBy) {
-        case 'newest':
-          return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-        case 'oldest':
-          return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-        case 'size-desc':
-          return (b.size || 0) - (a.size || 0);
-        case 'size-asc':
-          return (a.size || 0) - (b.size || 0);
-        case 'name-asc':
-          return a.name.localeCompare(b.name);
-        default:
-          return 0;
+      if (sortField === 'size') {
+        const sizeA = a.size || 0;
+        const sizeB = b.size || 0;
+        return sortDirection === 'asc' ? sizeA - sizeB : sizeB - sizeA;
       }
-    });
+      if (sortField === 'name') {
+        return sortDirection === 'asc'
+          ? a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+          : b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' });
+      }
+      if (sortField === 'type') {
+        return sortDirection === 'asc' ? a.type.localeCompare(b.type) : b.type.localeCompare(a.type);
+      }
+    }
 
-    return result;
-  }, [media, currentFolderId, searchQuery, filterType, linkFilter, sortBy]);
+    switch (sortBy) {
+      case 'newest':
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case 'oldest':
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case 'size-desc':
+        return (b.size || 0) - (a.size || 0);
+      case 'size-asc':
+        return (a.size || 0) - (b.size || 0);
+      case 'name-asc':
+        return a.name.localeCompare(b.name);
+      default:
+        return 0;
+    }
+  };
+
+  const dataTable = useDataTable<MediaItem>({
+    data: media,
+    searchFields: ['name'],
+    filterFn,
+    customComparator,
+  });
 
   const storageStats = useMemo(() => {
     let totalSize = 0;
@@ -100,13 +123,13 @@ export function useMedia(initialData: MediaItem[]) {
       videoSize,
       docSize,
       audioSize,
-      maxSize: 100 * 1024 * 1024 * 1024 // 100 GB limit mock
+      maxSize: 100 * 1024 * 1024 * 1024
     };
   }, [media]);
 
   const navigateToFolder = (folderId: string | null) => {
     setCurrentFolderId(folderId);
-    setSearchQuery('');
+    dataTable.setSearchQuery('');
     setSelectedIds([]);
   };
 
@@ -142,10 +165,10 @@ export function useMedia(initialData: MediaItem[]) {
   };
 
   const selectAll = () => {
-    if (selectedIds.length === filteredMedia.length) {
+    if (selectedIds.length === dataTable.filteredData.length) {
       setSelectedIds([]);
     } else {
-      setSelectedIds(filteredMedia.map(item => item.id));
+      setSelectedIds(dataTable.filteredData.map(item => item.id));
     }
   };
 
@@ -170,15 +193,18 @@ export function useMedia(initialData: MediaItem[]) {
     currentFolderId,
     currentFolder,
     breadcrumbs,
-    filteredMedia,
-    searchQuery,
-    setSearchQuery,
+    filteredMedia: dataTable.filteredData,
+    searchQuery: dataTable.searchQuery,
+    setSearchQuery: dataTable.setSearchQuery,
     filterType,
     setFilterType,
     linkFilter,
     setLinkFilter,
     sortBy,
-    setSortBy,
+    setSortBy: (option: SortOption) => {
+      setSortBy(option);
+      dataTable.setSortField(null);
+    },
     viewMode,
     setViewMode,
     selectedIds,
@@ -192,7 +218,11 @@ export function useMedia(initialData: MediaItem[]) {
     updateItem,
     addItem,
     createFolder,
-    storageStats
+    storageStats,
+    sortField: dataTable.sortField,
+    sortDirection: dataTable.sortDirection,
+    handleSort: dataTable.handleSort,
+    isLoading: dataTable.isLoading,
+    setIsLoading: dataTable.setIsLoading,
   };
 }
-

@@ -1,5 +1,4 @@
 import { 
-  Plus, 
   Search, 
   Upload, 
   Filter, 
@@ -32,6 +31,7 @@ import MediaTableView from './media/MediaTableView';
 import { NewFolderModal, UploadModal, BulkMoveModal } from './media/MediaModals';
 import { MediaItem as MediaItemType, MediaType, SortOption } from './media/types';
 import { motion, AnimatePresence } from 'motion/react';
+import { useModal } from '../../hooks/useModal';
 
 export default function MediaPage() {
   const {
@@ -51,7 +51,11 @@ export default function MediaPage() {
     updateItem,
     addItem,
     createFolder,
-    storageStats
+    storageStats,
+    sortField,
+    sortDirection,
+    handleSort,
+    isLoading
   } = useMedia(initialMedia);
 
   const [selectedItem, setSelectedItem] = useState<MediaItemType | null>(null);
@@ -60,9 +64,9 @@ export default function MediaPage() {
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   // Modals
-  const [isNewFolderOpen, setIsNewFolderOpen] = useState(false);
-  const [isUploadOpen, setIsUploadOpen] = useState(false);
-  const [isBulkMoveOpen, setIsBulkMoveOpen] = useState(false);
+  const newFolderModal = useModal();
+  const uploadModal = useModal();
+  const bulkMoveModal = useModal();
 
   const typeOptions: { label: string; value: MediaType | 'all'; icon: any }[] = [
     { label: 'All Files', value: 'all', icon: Grid },
@@ -116,7 +120,7 @@ export default function MediaPage() {
         
         <div className="flex items-center gap-2.5 shrink-0">
           <button 
-            onClick={() => setIsNewFolderOpen(true)}
+            onClick={() => newFolderModal.openModal()}
             className="flex items-center gap-2 px-3.5 py-2 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-700 hover:text-primary hover:border-primary transition-all cursor-pointer"
           >
             <FolderPlus className="w-4 h-4 text-primary" />
@@ -124,7 +128,7 @@ export default function MediaPage() {
           </button>
           
           <button 
-            onClick={() => setIsUploadOpen(true)}
+            onClick={() => uploadModal.openModal()}
             className="bg-gray-900 text-white px-4 py-2 rounded-xl font-semibold text-xs hover:bg-primary transition-all flex items-center gap-2 cursor-pointer"
           >
             <Upload className="w-4 h-4" />
@@ -337,11 +341,15 @@ export default function MediaPage() {
           onNavigate={navigateToFolder}
           onDelete={deleteItem}
           onShowDetails={setSelectedItem}
+          sortField={sortField as string}
+          sortDirection={sortDirection}
+          onSort={handleSort}
+          isLoading={isLoading}
         />
       )}
 
       {/* Empty State */}
-      {filteredMedia.length === 0 && (
+      {!isLoading && filteredMedia.length === 0 && (
         <div className="p-12 text-center bg-white rounded-2xl border border-gray-200">
           <div className="w-12 h-12 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-3 border border-gray-100">
             <ImageIcon className="w-5 h-5 text-gray-400" />
@@ -371,7 +379,7 @@ export default function MediaPage() {
 
             <div className="flex items-center gap-2">
               <button 
-                onClick={() => setIsBulkMoveOpen(true)}
+                onClick={() => bulkMoveModal.openModal()}
                 className="px-3 py-1.5 bg-gray-800 hover:bg-gray-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <FolderInput className="w-3.5 h-3.5 text-primary" />
@@ -408,21 +416,21 @@ export default function MediaPage() {
 
       {/* Modals */}
       <NewFolderModal 
-        isOpen={isNewFolderOpen}
-        onClose={() => setIsNewFolderOpen(false)}
+        isOpen={newFolderModal.isOpen}
+        onClose={newFolderModal.closeModal}
         onCreateFolder={createFolder}
       />
 
       <UploadModal 
-        isOpen={isUploadOpen}
-        onClose={() => setIsUploadOpen(false)}
+        isOpen={uploadModal.isOpen}
+        onClose={uploadModal.closeModal}
         currentFolderId={currentFolderId}
         onAddItem={addItem}
       />
 
       <BulkMoveModal 
-        isOpen={isBulkMoveOpen}
-        onClose={() => setIsBulkMoveOpen(false)}
+        isOpen={bulkMoveModal.isOpen}
+        onClose={bulkMoveModal.closeModal}
         folders={media}
         selectedCount={selectedIds.length}
         onMove={bulkMove}

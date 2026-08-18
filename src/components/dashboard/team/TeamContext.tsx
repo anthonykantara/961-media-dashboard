@@ -1,6 +1,7 @@
-import React, { createContext, useContext, useState, useMemo, ReactNode } from 'react';
+import React, { createContext, useContext, useState, ReactNode } from 'react';
 import { TeamMember } from './types';
 import { initialTeam } from './mockData';
+import { useDataTable } from '../../../hooks/useDataTable';
 
 interface TeamContextType {
   team: TeamMember[];
@@ -11,20 +12,16 @@ interface TeamContextType {
   removeMember: (id: string) => void;
   updateMember: (id: string, updates: Partial<TeamMember>) => void;
   getMember: (id: string) => TeamMember | undefined;
+  sortField: string | keyof TeamMember | null;
+  sortDirection: 'asc' | 'desc';
+  handleSort: (field: string | keyof TeamMember) => void;
+  isLoading: boolean;
 }
 
 const TeamContext = createContext<TeamContextType | undefined>(undefined);
 
 export function TeamProvider({ children }: { children: ReactNode }) {
   const [team, setTeam] = useState<TeamMember[]>(initialTeam);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  const filteredTeam = useMemo(() => {
-    return team.filter(member => 
-      member.username.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      member.name.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-  }, [team, searchQuery]);
 
   const addMember = (username: string, role: TeamMember['role']) => {
     const member: TeamMember = {
@@ -53,16 +50,25 @@ export function TeamProvider({ children }: { children: ReactNode }) {
     return team.find(m => m.id === id);
   };
 
+  const dataTable = useDataTable<TeamMember>({
+    data: team,
+    searchFields: ['username', 'name', 'role'],
+  });
+
   return (
     <TeamContext.Provider value={{
       team,
-      searchQuery,
-      setSearchQuery,
-      filteredTeam,
+      searchQuery: dataTable.searchQuery,
+      setSearchQuery: dataTable.setSearchQuery,
+      filteredTeam: dataTable.filteredData,
       addMember,
       removeMember,
       updateMember,
-      getMember
+      getMember,
+      sortField: dataTable.sortField,
+      sortDirection: dataTable.sortDirection,
+      handleSort: dataTable.handleSort,
+      isLoading: dataTable.isLoading,
     }}>
       {children}
     </TeamContext.Provider>

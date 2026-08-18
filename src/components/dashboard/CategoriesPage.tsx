@@ -3,12 +3,12 @@ import {
   Search, 
   Layers
 } from 'lucide-react';
-import { useState } from 'react';
 import { useCategories } from './categories/useCategories';
 import { initialCategories } from './categories/mockData';
 import CategoryTable from './categories/CategoryTable';
 import { AddCategoryModal, EditCategoryModal, DeleteCategoryModal } from './categories/CategoryModals';
 import { Category } from './categories/types';
+import { useModal } from '../../hooks/useModal';
 
 export default function CategoriesPage() {
   const {
@@ -17,23 +17,23 @@ export default function CategoriesPage() {
     addCategory,
     updateCategory,
     deleteCategory,
-    categories
+    categories,
+    sortField,
+    sortDirection,
+    handleSort,
+    isLoading
   } = useCategories(initialCategories);
 
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
-  const [categoryToEdit, setCategoryToEdit] = useState<Category | null>(null);
-  const [categoryToDelete, setCategoryToDelete] = useState<Category | null>(null);
+  const addModal = useModal();
+  const editModal = useModal<Category>();
+  const deleteModal = useModal<Category>();
 
   const handleEditClick = (category: Category) => {
-    setCategoryToEdit(category);
-    setIsEditModalOpen(true);
+    editModal.openModal(category);
   };
 
   const handleDeleteClick = (category: Category) => {
-    setCategoryToDelete(category);
-    setIsDeleteModalOpen(true);
+    deleteModal.openModal(category);
   };
 
   return (
@@ -50,7 +50,7 @@ export default function CategoriesPage() {
           />
         </div>
         <button 
-          onClick={() => setIsAddModalOpen(true)}
+          onClick={() => addModal.openModal()}
           className="bg-gray-900 text-white px-5 py-2.5 rounded-xl font-semibold text-xs hover:bg-primary transition-all flex items-center gap-2 shrink-0 cursor-pointer"
         >
           <Plus className="w-4 h-4" />
@@ -62,9 +62,13 @@ export default function CategoriesPage() {
         categories={filteredCategories} 
         onEdit={handleEditClick}
         onDelete={handleDeleteClick} 
+        sortField={sortField}
+        sortDirection={sortDirection}
+        onSort={handleSort}
+        isLoading={isLoading}
       />
 
-      {filteredCategories.length === 0 && (
+      {!isLoading && filteredCategories.length === 0 && (
         <div className="p-16 text-center bg-white rounded-xl border border-gray-200">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
             <Layers className="w-6 h-6 text-gray-300" />
@@ -75,30 +79,33 @@ export default function CategoriesPage() {
       )}
 
       <AddCategoryModal 
-        isOpen={isAddModalOpen} 
-        onClose={() => setIsAddModalOpen(false)} 
+        isOpen={addModal.isOpen} 
+        onClose={addModal.closeModal} 
         onAdd={(cat) => {
           addCategory(cat);
-          setIsAddModalOpen(false);
+          addModal.closeModal();
         }} 
       />
 
       <EditCategoryModal 
-        isOpen={isEditModalOpen} 
-        onClose={() => setIsEditModalOpen(false)} 
-        categoryToEdit={categoryToEdit} 
+        isOpen={editModal.isOpen} 
+        onClose={editModal.closeModal} 
+        categoryToEdit={editModal.data} 
         onUpdate={(id, updatedFields) => {
           updateCategory(id, updatedFields);
-          setIsEditModalOpen(false);
+          editModal.closeModal();
         }} 
       />
 
       <DeleteCategoryModal 
-        isOpen={isDeleteModalOpen} 
-        onClose={() => setIsDeleteModalOpen(false)} 
-        categoryToDelete={categoryToDelete} 
+        isOpen={deleteModal.isOpen} 
+        onClose={deleteModal.closeModal} 
+        categoryToDelete={deleteModal.data} 
         categories={categories} 
-        onDelete={deleteCategory} 
+        onDelete={(id, transferToId) => {
+          deleteCategory(id, transferToId);
+          deleteModal.closeModal();
+        }} 
       />
     </div>
   );
