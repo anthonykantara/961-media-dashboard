@@ -174,6 +174,8 @@ const STORAGE_KEY_LOCATIONS = 'the961_locations_list_v7';
 const STORAGE_KEY_ACTIVE = 'the961_active_location_id_v7';
 const STORAGE_KEY_LANG = 'the961_active_language_v7';
 
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5001';
+
 export function LocationProvider({ children }: { children: ReactNode }) {
   const [locations, setLocations] = useState<LocationTerritory[]>(() => {
     try {
@@ -217,6 +219,50 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const [isDetecting, setIsDetecting] = useState(false);
   const [detectedMessage, setDetectedMessage] = useState<string | null>(null);
+
+  // Fetch central location options from backend API on mount
+  useEffect(() => {
+    const fetchLocations = async () => {
+      try {
+        const res = await fetch(`${API_BASE}/api/locations`);
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const initialMap = new Map(INITIAL_LOCATIONS.map(loc => [loc.id, loc]));
+            const backendLocations: LocationTerritory[] = data.map((item: any) => {
+              const matched = initialMap.get(item.id);
+              return {
+                id: String(item.id),
+                name: item.name || item.id,
+                slug: item.slug || item.id,
+                level: item.level || (item.parentId ? 'city' : 'country'),
+                countryCode: item.countryCode || 'LB',
+                flagEmoji: item.flagEmoji || matched?.flagEmoji || '🌐',
+                isHub: Boolean(item.isHub),
+                status: item.status || 'active',
+                supportedLanguages: item.supportedLanguages || matched?.supportedLanguages || ['en'],
+                defaultLanguage: item.defaultLanguage || matched?.defaultLanguage || 'en',
+                parentId: item.parentId
+              };
+            });
+
+            // Merge with local static locations to preserve topic hubs
+            const merged = [...backendLocations];
+            INITIAL_LOCATIONS.forEach(initLoc => {
+              if (!merged.some(l => l.id === initLoc.id)) {
+                merged.push(initLoc);
+              }
+            });
+
+            setLocations(merged);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching locations from backend:', err);
+      }
+    };
+    fetchLocations();
+  }, []);
 
   // Sync locations to localStorage
   useEffect(() => {
@@ -300,10 +346,30 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const addLocation = (newLoc: LocationTerritory) => {
     setLocations(prev => [...prev, newLoc]);
+
+    fetch(`${API_BASE}/api/locations`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(newLoc),
+    }).catch(error => {
+      console.error('Error adding location to backend:', error);
+    });
   };
 
   const updateLocation = (updatedLoc: LocationTerritory) => {
     setLocations(prev => prev.map(l => l.id === updatedLoc.id ? updatedLoc : l));
+
+    fetch(`${API_BASE}/api/locations/${updatedLoc.id}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(updatedLoc),
+    }).catch(error => {
+      console.error('Error updating location on backend:', error);
+    });
   };
 
   const deleteLocation = (id: string) => {
@@ -311,6 +377,12 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     if (activeLocationId === id) {
       setActiveLocationId('lb');
     }
+
+    fetch(`${API_BASE}/api/locations/${id}`, {
+      method: 'DELETE',
+    }).catch(error => {
+      console.error('Error deleting location on backend:', error);
+    });
   };
 
   const smartDetectLocation = async (): Promise<LocationTerritory | null> => {
