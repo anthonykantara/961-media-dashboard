@@ -95,5 +95,13 @@ describe('useDataTable', () => {
     });
 
     expect(result.current.paginatedData[0].id).toBe('3');
+
+    act(() => {
+      result.current.setSearchQuery('gamma');
+    });
+
+    expect(result.current.currentPage).toBe(1);
+    expect(result.current.totalPages).toBe(1);
+    expect(result.current.paginatedData).toHaveLength(1);
   });
 });

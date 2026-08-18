@@ -45,10 +45,37 @@ export function useMedia(initialData: MediaItem[]) {
     return isCorrectFolder && matchesType && matchesLink;
   };
 
-  const customComparator = (a: MediaItem, b: MediaItem) => {
+  const customComparator = (
+    a: MediaItem,
+    b: MediaItem,
+    sortField: string | keyof MediaItem | null,
+    sortDirection: 'asc' | 'desc'
+  ) => {
     // Folders stay pinned at top of results regardless of sort
     if (a.type === 'folder' && b.type !== 'folder') return -1;
     if (a.type !== 'folder' && b.type === 'folder') return 1;
+
+    // If table column header sort is active, sort by sortField & sortDirection
+    if (sortField) {
+      if (sortField === 'createdAt') {
+        const timeA = new Date(a.createdAt).getTime();
+        const timeB = new Date(b.createdAt).getTime();
+        return sortDirection === 'asc' ? timeA - timeB : timeB - timeA;
+      }
+      if (sortField === 'size') {
+        const sizeA = a.size || 0;
+        const sizeB = b.size || 0;
+        return sortDirection === 'asc' ? sizeA - sizeB : sizeB - sizeA;
+      }
+      if (sortField === 'name') {
+        return sortDirection === 'asc'
+          ? a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
+          : b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' });
+      }
+      if (sortField === 'type') {
+        return sortDirection === 'asc' ? a.type.localeCompare(b.type) : b.type.localeCompare(a.type);
+      }
+    }
 
     switch (sortBy) {
       case 'newest':
@@ -174,7 +201,10 @@ export function useMedia(initialData: MediaItem[]) {
     linkFilter,
     setLinkFilter,
     sortBy,
-    setSortBy,
+    setSortBy: (option: SortOption) => {
+      setSortBy(option);
+      dataTable.setSortField(null);
+    },
     viewMode,
     setViewMode,
     selectedIds,

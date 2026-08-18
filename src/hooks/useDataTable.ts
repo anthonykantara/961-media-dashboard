@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 export type SortDirection = 'asc' | 'desc';
 
@@ -146,11 +146,18 @@ export function useDataTable<T extends Record<string, any>>({
 
   const totalPages = pageSize ? Math.ceil(filteredData.length / pageSize) || 1 : 1;
 
+  useEffect(() => {
+    if (currentPage > totalPages) {
+      setCurrentPage(Math.max(1, totalPages));
+    }
+  }, [currentPage, totalPages]);
+
   const paginatedData = useMemo(() => {
     if (!pageSize) return filteredData;
-    const start = (currentPage - 1) * pageSize;
+    const safePage = Math.min(currentPage, totalPages);
+    const start = (safePage - 1) * pageSize;
     return filteredData.slice(start, start + pageSize);
-  }, [filteredData, currentPage, pageSize]);
+  }, [filteredData, currentPage, totalPages, pageSize]);
 
   return {
     searchQuery,
