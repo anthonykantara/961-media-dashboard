@@ -174,6 +174,8 @@ const STORAGE_KEY_LOCATIONS = 'the961_locations_list_v7';
 const STORAGE_KEY_ACTIVE = 'the961_active_location_id_v7';
 const STORAGE_KEY_LANG = 'the961_active_language_v7';
 
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5001';
+
 export function LocationProvider({ children }: { children: ReactNode }) {
   const [locations, setLocations] = useState<LocationTerritory[]>(() => {
     try {
@@ -226,6 +228,37 @@ export function LocationProvider({ children }: { children: ReactNode }) {
       console.error(e);
     }
   }, [locations]);
+
+  // Fetch location taxonomy on mount
+  useEffect(() => {
+    let isMounted = true;
+    const fetchLocations = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/api/locations`);
+        if (response.ok) {
+          const data = await response.json();
+          if (Array.isArray(data) && data.length > 0) {
+            const merged = [...INITIAL_LOCATIONS];
+            data.forEach((item: LocationTerritory) => {
+              const idx = merged.findIndex(l => l.id === item.id);
+              if (idx >= 0) {
+                merged[idx] = item;
+              } else {
+                merged.push(item);
+              }
+            });
+            if (isMounted) {
+              setLocations(merged);
+            }
+          }
+        }
+      } catch (e) {
+        console.error('Error fetching locations from backend:', e);
+      }
+    };
+    fetchLocations();
+    return () => { isMounted = false; };
+  }, []);
 
   // RTL & DOM Language Sync
   useEffect(() => {
@@ -300,10 +333,20 @@ export function LocationProvider({ children }: { children: ReactNode }) {
 
   const addLocation = (newLoc: LocationTerritory) => {
     setLocations(prev => [...prev, newLoc]);
+    fetch(`${API_BASE}/api/locations`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(newLoc),
+    }).catch(e => console.error('Error adding location on backend:', e));
   };
 
   const updateLocation = (updatedLoc: LocationTerritory) => {
     setLocations(prev => prev.map(l => l.id === updatedLoc.id ? updatedLoc : l));
+    fetch(`${API_BASE}/api/locations/${updatedLoc.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updatedLoc),
+    }).catch(e => console.error('Error updating location on backend:', e));
   };
 
   const deleteLocation = (id: string) => {
@@ -311,6 +354,9 @@ export function LocationProvider({ children }: { children: ReactNode }) {
     if (activeLocationId === id) {
       setActiveLocationId('lb');
     }
+    fetch(`${API_BASE}/api/locations/${id}`, {
+      method: 'DELETE',
+    }).catch(e => console.error('Error deleting location on backend:', e));
   };
 
   const smartDetectLocation = async (): Promise<LocationTerritory | null> => {
