@@ -51,26 +51,6 @@ button, input, select, textarea, a, [role="button"] {
   --border-strong: #E5E7EB;
 }
 
-html.dark, html[data-theme="dark"] {
-  --bg-main: #0B0C0E;
-  --bg-card: #131519;
-  --bg-alt: #181A1F;
-  --text-main: #F3F4F6;
-  --text-muted: #9CA3AF;
-  --border-subtle: #1F242D;
-  --border-strong: #2D333F;
-}
-
-html.sepia, html[data-theme="sepia"] {
-  --bg-main: #F6F1E6;
-  --bg-card: #ECE5D5;
-  --bg-alt: #E3D9C4;
-  --text-main: #2D251E;
-  --text-muted: #746455;
-  --border-subtle: #E0D4C0;
-  --border-strong: #CFC0A8;
-}
-
 @layer base {
   body {
     background-color: var(--bg-main);

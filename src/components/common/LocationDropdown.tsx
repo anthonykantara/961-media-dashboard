@@ -115,11 +115,11 @@ export default function LocationDropdown({
   const getTopicIcon = (slug: string, isActive: boolean) => {
     switch (slug) {
       case 'tech':
-        return <Cpu className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-gray-600 dark:text-gray-400'}`} />;
+        return <Cpu className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-gray-600'}`} />;
       case 'business':
-        return <TrendingUp className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-gray-600 dark:text-gray-400'}`} />;
+        return <TrendingUp className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-gray-600'}`} />;
       case 'sports':
-        return <Trophy className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-gray-600 dark:text-gray-400'}`} />;
+        return <Trophy className={`w-3.5 h-3.5 ${isActive ? 'text-primary' : 'text-gray-600'}`} />;
       default:
         return <span className="text-xs">⚡</span>;
     }
@@ -163,12 +163,12 @@ export default function LocationDropdown({
       {/* Floating editorial dropdown directly under the switcher */}
       <div 
         ref={dropdownRef}
-        className={className || "absolute top-full left-4 sm:left-6 z-50 mt-1.5 w-[calc(100vw-2rem)] sm:w-[360px] bg-white dark:bg-[#121418] sepia:bg-[#FAF6EE] border border-gray-200 dark:border-gray-800 sepia:border-[#E5DBC7] rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"}
+        className={className || "absolute top-full left-4 sm:left-6 z-50 mt-1.5 w-[calc(100vw-2rem)] sm:w-[360px] bg-white border border-gray-200 rounded-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-1 duration-150"}
       >
         <div className="p-3 space-y-3 max-h-[calc(100vh-140px)] overflow-y-auto scrollbar-thin">
           {/* Horizontal Topic Global Editions (Tech, Business, Sports) */}
           {topicEditions.length > 0 && (
-            <div className="flex items-center gap-1.5 pb-2.5 border-b border-gray-100 dark:border-gray-800/80 sepia:border-[#EAE1D0]">
+            <div className="flex items-center gap-1.5 pb-2.5 border-b border-gray-100">
               {topicEditions.map((topic) => {
                 const isTopicActive = activeLocationId === topic.id;
 
@@ -180,7 +180,7 @@ export default function LocationDropdown({
                     className={`flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex-1 min-w-0 ${
                       isTopicActive 
                         ? 'bg-primary/10 text-primary font-bold' 
-                        : 'bg-gray-50 dark:bg-gray-900/50 text-gray-800 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-white/5'
+                        : 'bg-gray-50 text-gray-800 hover:bg-gray-100'
                     }`}
                   >
                     <div className="w-4 h-4 rounded flex items-center justify-center shrink-0">
@@ -202,7 +202,7 @@ export default function LocationDropdown({
               return (
                 <div key={country.id} className="space-y-0.5">
                   {/* Country List Row (Level 1) */}
-                  <div className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors">
+                  <div className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-50 transition-colors">
                     <button
                       type="button"
                       onClick={() => handleSelect(country.id)}
@@ -212,7 +212,7 @@ export default function LocationDropdown({
                       <span className={`text-sm tracking-tight truncate transition-colors ${
                         isCountryActive 
                           ? 'text-primary font-bold' 
-                          : 'text-gray-900 dark:text-white sepia:text-[#2D251E] font-medium'
+                          : 'text-gray-900 font-medium'
                       }`}>
                         {country.name}
                       </span>
@@ -229,7 +229,7 @@ export default function LocationDropdown({
                         return (
                           <div 
                             key={city.id}
-                            className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-50 dark:hover:bg-white/5 transition-colors group/city"
+                            className="flex items-center py-1 px-1.5 rounded-md hover:bg-gray-50 transition-colors group/city"
                           >
                             <button
                               type="button"
@@ -239,12 +239,12 @@ export default function LocationDropdown({
                               <ChevronRight className={`w-3.5 h-3.5 shrink-0 transition-colors ${
                                 isCityActive 
                                   ? 'text-primary' 
-                                  : 'text-gray-400 dark:text-gray-600 group-hover/city:text-primary'
+                                  : 'text-gray-400 group-hover/city:text-primary'
                               }`} />
                               <span className={`text-[13px] truncate transition-colors ${
                                 isCityActive 
                                   ? 'text-primary font-bold' 
-                                  : 'text-gray-700 dark:text-gray-300 sepia:text-[#4A3E31] group-hover/city:text-gray-900 dark:group-hover/city:text-white font-normal'
+                                  : 'text-gray-700 group-hover/city:text-gray-900 font-normal'
                               }`}>
                                 {city.name}
                               </span>

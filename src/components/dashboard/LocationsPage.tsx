@@ -174,13 +174,13 @@ export default function LocationsPage() {
         );
       case 'draft':
         return (
-          <span className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 dark:bg-gray-800 dark:text-gray-300 capitalize">
+          <span className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-gray-200 text-gray-700 capitalize">
             draft
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300 capitalize">
+          <span className="inline-flex items-center text-[9px] font-semibold px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 capitalize">
             active
           </span>
         );
@@ -204,32 +204,32 @@ export default function LocationsPage() {
 
       {/* Summary Metrics */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
-        <div className="bg-white dark:bg-[#121418] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="bg-white p-4 rounded-xl border border-gray-200">
           <p className="text-xs text-gray-400 font-medium">Total Locations</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">{geographicLocations.length}</p>
+          <p className="text-xl font-bold text-gray-900 mt-1">{geographicLocations.length}</p>
         </div>
-        <div className="bg-white dark:bg-[#121418] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="bg-white p-4 rounded-xl border border-gray-200">
           <p className="text-xs text-gray-400 font-medium">Countries</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+          <p className="text-xl font-bold text-gray-900 mt-1">
             {geographicLocations.filter(l => l.level === 'country').length}
           </p>
         </div>
-        <div className="bg-white dark:bg-[#121418] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="bg-white p-4 rounded-xl border border-gray-200">
           <p className="text-xs text-gray-400 font-medium">Cities</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+          <p className="text-xl font-bold text-gray-900 mt-1">
             {geographicLocations.filter(l => l.level === 'city').length}
           </p>
         </div>
-        <div className="bg-white dark:bg-[#121418] p-4 rounded-xl border border-gray-200 dark:border-gray-800">
+        <div className="bg-white p-4 rounded-xl border border-gray-200">
           <p className="text-xs text-gray-400 font-medium">Languages</p>
-          <p className="text-xl font-bold text-gray-900 dark:text-white mt-1">
+          <p className="text-xl font-bold text-gray-900 mt-1">
             {Object.keys(SUPPORTED_LANGUAGES).length}
           </p>
         </div>
       </div>
 
       {/* Search & Filter Bar */}
-      <div className="bg-white dark:bg-[#121418] p-3.5 rounded-xl border border-gray-200 dark:border-gray-800 flex flex-col sm:flex-row items-center gap-3">
+      <div className="bg-white p-3.5 rounded-xl border border-gray-200 flex flex-col sm:flex-row items-center gap-3">
         <div className="relative flex-1 w-full">
           <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
           <input
@@ -237,18 +237,18 @@ export default function LocationsPage() {
             placeholder="Search locations..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-9 pr-4 py-2 bg-gray-50 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700/60 rounded-xl text-xs text-gray-900 dark:text-white placeholder-gray-400 focus:outline-none focus:border-[#FF0000]"
+            className="w-full pl-9 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FF0000]"
           />
         </div>
 
         <div className="flex items-center gap-2 w-full sm:w-auto flex-wrap">
           {/* Level Filter */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl text-xs">
+          <div className="flex items-center bg-gray-100 p-1 rounded-xl text-xs">
             <button
               type="button"
               onClick={() => setFilterLevel('all')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filterLevel === 'all' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-2xs' : 'text-gray-500'
+                filterLevel === 'all' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
               }`}
             >
               All
@@ -257,7 +257,7 @@ export default function LocationsPage() {
               type="button"
               onClick={() => setFilterLevel('country')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filterLevel === 'country' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-2xs' : 'text-gray-500'
+                filterLevel === 'country' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
               }`}
             >
               Countries
@@ -266,7 +266,7 @@ export default function LocationsPage() {
               type="button"
               onClick={() => setFilterLevel('city')}
               className={`px-3 py-1 rounded-lg font-medium transition-colors cursor-pointer ${
-                filterLevel === 'city' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-2xs' : 'text-gray-500'
+                filterLevel === 'city' ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
               }`}
             >
               Cities
@@ -274,14 +274,14 @@ export default function LocationsPage() {
           </div>
 
           {/* Status Filter */}
-          <div className="flex items-center bg-gray-100 dark:bg-gray-800 p-1 rounded-xl text-xs">
+          <div className="flex items-center bg-gray-100 p-1 rounded-xl text-xs">
             {(['all', 'active', 'beta', 'soon', 'draft'] as const).map(st => (
               <button
                 key={st}
                 type="button"
                 onClick={() => setFilterStatus(st)}
                 className={`px-2.5 py-1 rounded-lg font-medium capitalize transition-colors cursor-pointer ${
-                  filterStatus === st ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-2xs' : 'text-gray-500'
+                  filterStatus === st ? 'bg-white text-gray-900 shadow-2xs' : 'text-gray-500'
                 }`}
               >
                 {st}
@@ -292,11 +292,11 @@ export default function LocationsPage() {
       </div>
 
       {/* Locations Table */}
-      <div className="bg-white dark:bg-[#121418] border border-gray-200 dark:border-gray-800 rounded-xl overflow-hidden">
+      <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="bg-gray-50/70 dark:bg-gray-800/40 text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-gray-800">
+              <tr className="bg-gray-50/70 text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
                 <th className="pl-6 pr-4 py-3.5">Location</th>
                 <th className="px-4 py-3.5">Type</th>
                 <th className="px-4 py-3.5">Parent Country</th>
@@ -305,7 +305,7 @@ export default function LocationsPage() {
                 <th className="pr-6 pl-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-gray-100 dark:divide-gray-800 text-xs">
+            <tbody className="divide-y divide-gray-100 text-xs">
               {filteredLocations.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="p-8 text-center text-gray-400">
@@ -318,26 +318,26 @@ export default function LocationsPage() {
                   const supportedLangs = loc.supportedLanguages && loc.supportedLanguages.length > 0 ? loc.supportedLanguages : ['en'];
 
                   return (
-                    <tr key={loc.id} className="hover:bg-gray-50/60 dark:hover:bg-gray-800/30 transition-colors">
+                    <tr key={loc.id} className="hover:bg-gray-50/60 transition-colors">
                       <td className="pl-6 pr-4 py-3.5">
                         <div className="flex items-center gap-2.5">
                           <FlagIcon countryCode={loc.countryCode} className="w-4.5 h-3.5 shrink-0" />
-                          <span className="font-semibold text-gray-900 dark:text-white">{loc.name}</span>
+                          <span className="font-semibold text-gray-900">{loc.name}</span>
                         </div>
                       </td>
 
                       <td className="px-4 py-3.5">
                         <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[11px] font-medium capitalize ${
                           loc.level === 'country' 
-                            ? 'bg-blue-50 text-blue-700 dark:bg-blue-950/40 dark:text-blue-300' 
-                            : 'bg-purple-50 text-purple-700 dark:bg-purple-950/40 dark:text-purple-300'
+                            ? 'bg-blue-50 text-blue-700' 
+                            : 'bg-purple-50 text-purple-700'
                         }`}>
                           {loc.level === 'country' ? <MapPin className="w-3 h-3" /> : <Building2 className="w-3 h-3" />}
                           <span>{loc.level}</span>
                         </span>
                       </td>
 
-                      <td className="px-4 py-3.5 text-gray-600 dark:text-gray-400">
+                      <td className="px-4 py-3.5 text-gray-600">
                         {parent ? parent.name : '—'}
                       </td>
 
@@ -352,7 +352,7 @@ export default function LocationsPage() {
                                 className={`px-1.5 py-0.5 rounded text-[10px] font-medium ${
                                   isDefault 
                                     ? 'bg-red-50 text-[#FF0000] border border-red-200' 
-                                    : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300'
+                                    : 'bg-gray-100 text-gray-600'
                                 }`}
                                 title={langInfo ? `${langInfo.name} ${isDefault ? '(Default)' : ''}` : langCode}
                               >
@@ -372,7 +372,7 @@ export default function LocationsPage() {
                           <button
                             type="button"
                             onClick={() => handleOpenEdit(loc)}
-                            className="p-1.5 text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors cursor-pointer"
+                            className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
                             title="Edit location"
                           >
                             <Edit3 className="w-3.5 h-3.5" />
@@ -380,7 +380,7 @@ export default function LocationsPage() {
                           <button
                             type="button"
                             onClick={() => deleteLocation(loc.id)}
-                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-950/40 transition-colors cursor-pointer"
+                            className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 transition-colors cursor-pointer"
                             title="Delete location"
                           >
                             <Trash2 className="w-3.5 h-3.5" />
@@ -399,15 +399,15 @@ export default function LocationsPage() {
       {/* Add / Edit Location Modal */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white dark:bg-[#121418] rounded-2xl border border-gray-200 dark:border-gray-800 max-w-md w-full p-6 space-y-5">
-            <div className="flex items-center justify-between pb-3 border-b border-gray-100 dark:border-gray-800">
-              <h3 className="text-base font-bold text-gray-900 dark:text-white">
+          <div className="bg-white rounded-2xl border border-gray-200 max-w-md w-full p-6 space-y-5">
+            <div className="flex items-center justify-between pb-3 border-b border-gray-100">
+              <h3 className="text-base font-bold text-gray-900">
                 {editingLoc ? `Edit Location` : 'Add Location'}
               </h3>
               <button
                 type="button"
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 rounded-lg cursor-pointer"
+                className="p-1.5 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -416,13 +416,13 @@ export default function LocationsPage() {
             <form onSubmit={handleSave} className="space-y-4">
               {/* Type selection */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1.5">Type</label>
+                <label className="text-xs font-semibold text-gray-700 block mb-1.5">Type</label>
                 <div className="grid grid-cols-2 gap-2">
                   <button
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, level: 'country' }))}
                     className={`py-2 px-3 rounded-xl border text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                      formData.level === 'country' ? 'bg-red-50 dark:bg-red-950/30 border-[#FF0000] text-[#FF0000] font-semibold' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50'
+                      formData.level === 'country' ? 'bg-red-50 border-[#FF0000] text-[#FF0000] font-semibold' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
                   >
                     <MapPin className="w-3.5 h-3.5" />
@@ -433,7 +433,7 @@ export default function LocationsPage() {
                     type="button"
                     onClick={() => setFormData(prev => ({ ...prev, level: 'city' }))}
                     className={`py-2 px-3 rounded-xl border text-xs font-medium flex items-center justify-center gap-2 transition-all cursor-pointer ${
-                      formData.level === 'city' ? 'bg-red-50 dark:bg-red-950/30 border-[#FF0000] text-[#FF0000] font-semibold' : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-50'
+                      formData.level === 'city' ? 'bg-red-50 border-[#FF0000] text-[#FF0000] font-semibold' : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                     }`}
                   >
                     <Building2 className="w-3.5 h-3.5" />
@@ -444,21 +444,21 @@ export default function LocationsPage() {
 
               {/* Name */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Name</label>
+                <label className="text-xs font-semibold text-gray-700 block mb-1">Name</label>
                 <input
                   type="text"
                   required
                   placeholder={formData.level === 'country' ? 'e.g., Slovakia' : 'e.g., Riyadh'}
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                  className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#FF0000]"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-[#FF0000]"
                 />
               </div>
 
               {/* Parent Country dropdown (if city) */}
               {formData.level === 'city' && (
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Parent Country</label>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1">Parent Country</label>
                   <select
                     value={formData.parentId}
                     onChange={(e) => {
@@ -470,7 +470,7 @@ export default function LocationsPage() {
                         flagEmoji: parent ? parent.flagEmoji : prev.flagEmoji
                       }));
                     }}
-                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#FF0000] cursor-pointer"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-[#FF0000] cursor-pointer"
                   >
                     <option value="">Select Parent Country...</option>
                     {parentCountries.map(p => (
@@ -483,7 +483,7 @@ export default function LocationsPage() {
               {/* Country Code & Status */}
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Country Code</label>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1">Country Code</label>
                   <input
                     type="text"
                     required
@@ -491,16 +491,16 @@ export default function LocationsPage() {
                     placeholder="SK"
                     value={formData.countryCode}
                     onChange={(e) => setFormData(prev => ({ ...prev, countryCode: e.target.value.toUpperCase() }))}
-                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs font-mono uppercase text-gray-900 dark:text-white focus:outline-none focus:border-[#FF0000]"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs font-mono uppercase text-gray-900 focus:outline-none focus:border-[#FF0000]"
                   />
                 </div>
 
                 <div>
-                  <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">Status</label>
+                  <label className="text-xs font-semibold text-gray-700 block mb-1">Status</label>
                   <select
                     value={formData.status}
                     onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as any }))}
-                    className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#FF0000] cursor-pointer"
+                    className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-[#FF0000] cursor-pointer"
                   >
                     <option value="active">Active</option>
                     <option value="new">New</option>
@@ -513,7 +513,7 @@ export default function LocationsPage() {
 
               {/* Languages Selection */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1.5">
+                <label className="text-xs font-semibold text-gray-700 block mb-1.5">
                   Languages
                 </label>
                 <div className="grid grid-cols-2 gap-2">
@@ -526,8 +526,8 @@ export default function LocationsPage() {
                         onClick={() => toggleLanguage(lang.code)}
                         className={`p-2 rounded-xl border text-xs font-medium flex items-center justify-between transition-colors cursor-pointer ${
                           isSelected
-                            ? 'bg-red-50/70 dark:bg-red-950/30 border-[#FF0000] text-[#FF0000]'
-                            : 'border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-400 hover:bg-gray-50'
+                            ? 'bg-red-50/70 border-[#FF0000] text-[#FF0000]'
+                            : 'border-gray-200 text-gray-600 hover:bg-gray-50'
                         }`}
                       >
                         <span>{lang.name} ({lang.short})</span>
@@ -540,13 +540,13 @@ export default function LocationsPage() {
 
               {/* Default Language */}
               <div>
-                <label className="text-xs font-semibold text-gray-700 dark:text-gray-300 block mb-1">
+                <label className="text-xs font-semibold text-gray-700 block mb-1">
                   Default Language
                 </label>
                 <select
                   value={formData.defaultLanguage}
                   onChange={(e) => setFormData(prev => ({ ...prev, defaultLanguage: e.target.value }))}
-                  className="w-full p-2.5 bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl text-xs text-gray-900 dark:text-white focus:outline-none focus:border-[#FF0000] cursor-pointer"
+                  className="w-full p-2.5 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 focus:outline-none focus:border-[#FF0000] cursor-pointer"
                 >
                   {formData.supportedLanguages.map(code => (
                     <option key={code} value={code}>
@@ -557,11 +557,11 @@ export default function LocationsPage() {
               </div>
 
               {/* Form Buttons */}
-              <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-gray-100 dark:border-gray-800">
+              <div className="pt-3 flex items-center justify-end gap-2.5 border-t border-gray-100">
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="px-4 py-2 rounded-xl border border-gray-200 dark:border-gray-700 text-xs font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-50 transition-colors cursor-pointer"
+                  className="px-4 py-2 rounded-xl border border-gray-200 text-xs font-medium text-gray-600 hover:bg-gray-50 transition-colors cursor-pointer"
                 >
                   Cancel
                 </button>
