@@ -1,310 +1,510 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Check, 
   X, 
-  Eye
+  Eye, 
+  Hash, 
+  ArrowUpDown, 
+  Building, 
+  MessageSquare, 
+  FileText, 
+  DollarSign,
+  AlertCircle,
+  ExternalLink
 } from 'lucide-react';
 
-interface AdRequest {
+export interface OpportunityItem {
   id: string;
-  companyName: string;
-  contactName: string;
-  email: string;
-  placement: 'Homepage Banner' | 'Sponsored Article' | 'Newsletter Sponsor' | 'Sidebar Sticky';
-  budget: string;
-  dateSubmitted: string;
-  startDate: string;
-  duration: string;
-  targetMarket: string;
-  status: 'pending' | 'approved' | 'declined';
-  notes: string;
+  name: string;
+  objective: string;
+  countryId: string;
+  status: 'lead_captured' | 'draft' | 'pending_payment' | 'active' | 'completed' | 'cancelled';
+  totalAmount: number;
+  currency: string;
+  accessToken: string;
+  slackChannel?: string;
+  sessionId?: string;
+  notes?: string;
+  priorityTier: number; // 5 ($15k+), 4 ($7.5k-$15k), 3 ($3k-$7.5k), 2 ($1k-$3k), 1 (<$1k)
+  createdAt: string;
+  advertiser?: {
+    id: string;
+    companyName: string;
+    companySlug: string;
+    brandName: string;
+    website?: string;
+    industry?: string;
+  };
+  contact?: {
+    id: string;
+    fullName: string;
+    email: string;
+    phoneNumber: string;
+  };
+  items?: Array<{
+    id: string;
+    productId: string;
+    quantity: number;
+    unitPrice: number;
+    totalPrice: number;
+  }>;
+  assets?: Array<{
+    id: string;
+    fileName: string;
+    wasabiPath: string;
+  }>;
 }
 
-const INITIAL_REQUESTS: AdRequest[] = [
+const INITIAL_OPPORTUNITIES: OpportunityItem[] = [
   {
-    id: 'ad-101',
-    companyName: 'BankMed Lebanon',
-    contactName: 'Rami Touma',
-    email: 'rami.t@bankmed.com.lb',
-    placement: 'Homepage Banner',
-    budget: '$4,500',
-    dateSubmitted: 'Today, 2:15 PM',
-    startDate: 'Sep 1, 2026',
-    duration: '30 Days',
-    targetMarket: 'Lebanon & Diaspora',
-    status: 'pending',
-    notes: 'Promoting our new expat investment account with dedicated digital banner placements.',
+    id: 'cmp_sa_tier5',
+    name: 'Riyadh Seasons Gulf Regional Campaign',
+    objective: 'Brand Awareness & Event RSVPs',
+    countryId: 'sa',
+    status: 'active',
+    totalAmount: 18500,
+    currency: 'USD',
+    accessToken: 'cmp_tok_riyadh_seasons_99',
+    slackChannel: '#ads-riyadh-seasons',
+    priorityTier: 5,
+    createdAt: new Date(Date.now() - 3600000 * 2).toISOString(),
+    advertiser: {
+      id: 'adv_sa_1',
+      companyName: 'Riyadh Seasons Tourism Authority',
+      companySlug: 'riyadh-seasons-tourism-authority',
+      brandName: 'Riyadh Seasons',
+      website: 'https://riyadhseasons.sa',
+      industry: 'Tourism & Culture'
+    },
+    contact: {
+      id: 'cnt_sa_1',
+      fullName: 'Fahad Al-Harbi',
+      email: 'fahad@riyadhseasons.sa',
+      phoneNumber: '+966 50 111 2222'
+    },
+    items: [
+      { id: 'i1', productId: 'prod_featured_article', quantity: 2, unitPrice: 1200, totalPrice: 2400 },
+      { id: 'i2', productId: 'prod_social_video', quantity: 5, unitPrice: 1500, totalPrice: 7500 },
+      { id: 'i3', productId: 'prod_display_banner', quantity: 10, unitPrice: 500, totalPrice: 5000 },
+      { id: 'i4', productId: 'prod_newsletter_feature', quantity: 4, unitPrice: 750, totalPrice: 3600 }
+    ]
   },
   {
-    id: 'ad-102',
-    companyName: 'Bratislava Tech Summit',
-    contactName: 'Michal Novak',
-    email: 'michal@techsummit.sk',
-    placement: 'Sponsored Article',
-    budget: '$2,800',
-    dateSubmitted: 'Yesterday',
-    startDate: 'Aug 25, 2026',
-    duration: 'One-off + Social',
-    targetMarket: 'Slovakia & Tech',
-    status: 'pending',
-    notes: 'Feature story on central European startups expanding to the Middle East.',
+    id: 'cmp_lb_tier4',
+    name: 'BankMed Expat Account Launch',
+    objective: 'Lead Generation',
+    countryId: 'lb',
+    status: 'pending_payment',
+    totalAmount: 9200,
+    currency: 'USD',
+    accessToken: 'cmp_tok_bankmed_expats',
+    slackChannel: '#ads-bankmed-lebanon',
+    priorityTier: 4,
+    createdAt: new Date(Date.now() - 3600000 * 5).toISOString(),
+    advertiser: {
+      id: 'adv_lb_1',
+      companyName: 'BankMed Lebanon SAL',
+      companySlug: 'bankmed-lebanon-sal',
+      brandName: 'BankMed',
+      website: 'https://bankmed.com.lb',
+      industry: 'Banking & Financial Services'
+    },
+    contact: {
+      id: 'cnt_lb_1',
+      fullName: 'Rami Touma',
+      email: 'rami.t@bankmed.com.lb',
+      phoneNumber: '+961 70 333 444'
+    },
+    items: [
+      { id: 'i5', productId: 'prod_featured_article', quantity: 2, unitPrice: 750, totalPrice: 1500 },
+      { id: 'i6', productId: 'prod_social_video', quantity: 3, unitPrice: 950, totalPrice: 2850 },
+      { id: 'i7', productId: 'prod_display_banner', quantity: 10, unitPrice: 300, totalPrice: 3000 },
+      { id: 'i8', productId: 'prod_newsletter_feature', quantity: 4, unitPrice: 450, totalPrice: 1800 }
+    ]
   },
   {
-    id: 'ad-103',
-    companyName: 'Riyadh Seasons Tourism',
-    contactName: 'Fahad Al-Harbi',
-    email: 'fahad@riyadhseasons.sa',
-    placement: 'Sidebar Sticky',
-    budget: '$8,000',
-    dateSubmitted: 'Aug 12, 2026',
-    startDate: 'Oct 1, 2026',
-    duration: '60 Days',
-    targetMarket: 'Saudi Arabia & Gulf',
-    status: 'pending',
-    notes: 'Destination marketing campaign targeting travelers across the Arab region.',
+    id: 'cmp_ae_tier3',
+    name: 'Dubai Fintech Week Regional Takeover',
+    objective: 'Sales & Conversions',
+    countryId: 'ae',
+    status: 'active',
+    totalAmount: 4500,
+    currency: 'USD',
+    accessToken: 'cmp_tok_dubai_fintech',
+    slackChannel: '#ads-dubai-fintech-week',
+    priorityTier: 3,
+    createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
+    advertiser: {
+      id: 'adv_ae_1',
+      companyName: 'Dubai Fintech Week Events Ltd',
+      companySlug: 'dubai-fintech-week-events-ltd',
+      brandName: 'Dubai Fintech Week',
+      website: 'https://dubaifintech.ae',
+      industry: 'Fintech & Tech'
+    },
+    contact: {
+      id: 'cnt_ae_1',
+      fullName: 'Sarah Jenkins',
+      email: 'sarah.j@dubaifintech.ae',
+      phoneNumber: '+971 50 999 8888'
+    },
+    items: [
+      { id: 'i9', productId: 'prod_featured_article', quantity: 1, unitPrice: 1200, totalPrice: 1200 },
+      { id: 'i10', productId: 'prod_newsletter_feature', quantity: 3, unitPrice: 750, totalPrice: 2250 },
+      { id: 'i11', productId: 'prod_dedicated_social_post', quantity: 1, unitPrice: 800, totalPrice: 800 }
+    ]
   },
   {
-    id: 'ad-104',
-    companyName: 'Dubai Fintech Week',
-    contactName: 'Sarah Jenkins',
-    email: 'sarah.j@dubaifintech.ae',
-    placement: 'Newsletter Sponsor',
-    budget: '$3,200',
-    dateSubmitted: 'Aug 10, 2026',
-    startDate: 'Sep 15, 2026',
-    duration: '4 Issues',
-    targetMarket: 'UAE & Tech',
-    status: 'pending',
-    notes: 'Header takeover in The961 Morning Brief for 4 consecutive weeks.',
-  },
-  {
-    id: 'ad-105',
-    companyName: 'Almaza Brewery',
-    contactName: 'Ziad Chemali',
-    email: 'z.chemali@almaza.com.lb',
-    placement: 'Homepage Banner',
-    budget: '$5,000',
-    dateSubmitted: 'Aug 05, 2026',
-    startDate: 'Aug 15, 2026',
-    duration: '30 Days',
-    targetMarket: 'Lebanon',
-    status: 'approved',
-    notes: 'Summer campaign promoting local craft edition.',
-  },
+    id: 'cmp_lb_tier2',
+    name: 'Almaza Craft Edition Summer Campaign',
+    objective: 'Brand Awareness',
+    countryId: 'lb',
+    status: 'lead_captured',
+    totalAmount: 1700,
+    currency: 'USD',
+    accessToken: 'cmp_tok_almaza_craft',
+    priorityTier: 2,
+    createdAt: new Date(Date.now() - 3600000 * 24).toISOString(),
+    advertiser: {
+      id: 'adv_lb_2',
+      companyName: 'Almaza Brewery SAL',
+      companySlug: 'almaza-brewery-sal',
+      brandName: 'Almaza',
+      website: 'https://almaza.com.lb',
+      industry: 'Food & Beverage'
+    },
+    contact: {
+      id: 'cnt_lb_2',
+      fullName: 'Ziad Chemali',
+      email: 'z.chemali@almaza.com.lb',
+      phoneNumber: '+961 71 555 666'
+    },
+    items: [
+      { id: 'i12', productId: 'prod_featured_article', quantity: 1, unitPrice: 750, totalPrice: 750 },
+      { id: 'i13', productId: 'prod_social_video', quantity: 1, unitPrice: 950, totalPrice: 950 }
+    ]
+  }
 ];
 
 export default function AdRequestsPage() {
-  const [requests, setRequests] = useState<AdRequest[]>(INITIAL_REQUESTS);
-  const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'approved' | 'declined'>('all');
-  const [selectedRequest, setSelectedRequest] = useState<AdRequest | null>(null);
+  const [opportunities, setOpportunities] = useState<OpportunityItem[]>(INITIAL_OPPORTUNITIES);
+  const [stateFilter, setStateFilter] = useState<string>('all');
+  const [sortBy, setSortBy] = useState<'priority' | 'budget' | 'date'>('priority');
+  const [selectedOpp, setSelectedOpp] = useState<OpportunityItem | null>(null);
+  const [creatingChannelId, setCreatingChannelId] = useState<string | null>(null);
 
-  const pendingCount = requests.filter(r => r.status === 'pending').length;
+  useEffect(() => {
+    async function fetchLeadsAndCampaigns() {
+      try {
+        const res = await fetch('/api/v1/admin/leads-and-campaigns');
+        if (res.ok) {
+          const data = await res.json();
+          if (Array.isArray(data.opportunities) && data.opportunities.length > 0) {
+            setOpportunities(data.opportunities);
+          }
+        }
+      } catch (err) {
+        console.warn('Backend admin leads API offline, using dashboard store.');
+      }
+    }
+    fetchLeadsAndCampaigns();
+  }, []);
 
-  const handleUpdateStatus = (id: string, status: 'approved' | 'declined') => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
-    if (selectedRequest && selectedRequest.id === id) {
-      setSelectedRequest(prev => prev ? { ...prev, status } : null);
+  // Filter and sort opportunities by budget priority and state
+  const processedOpportunities = useMemo(() => {
+    let list = [...opportunities];
+
+    if (stateFilter !== 'all') {
+      list = list.filter(o => o.status === stateFilter);
+    }
+
+    list.sort((a, b) => {
+      if (sortBy === 'priority') {
+        if (b.priorityTier !== a.priorityTier) return b.priorityTier - a.priorityTier;
+        return b.totalAmount - a.totalAmount;
+      }
+      if (sortBy === 'budget') {
+        return b.totalAmount - a.totalAmount;
+      }
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+
+    return list;
+  }, [opportunities, stateFilter, sortBy]);
+
+  // Handle Slack channel creation trigger
+  const handleCreateSlackChannel = async (opp: OpportunityItem) => {
+    setCreatingChannelId(opp.id);
+    const companySlug = opp.advertiser?.companySlug || 'company';
+    const channelName = `#ads-${companySlug.substring(0, 50)}`;
+
+    try {
+      const res = await fetch(`/api/v1/admin/campaigns/${opp.id}/slack-channel`, {
+        method: 'POST'
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        const createdChannel = data.slackChannel || channelName;
+        setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, slackChannel: createdChannel } : o));
+        if (selectedOpp && selectedOpp.id === opp.id) {
+          setSelectedOpp(prev => prev ? { ...prev, slackChannel: createdChannel } : null);
+        }
+      } else {
+        setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, slackChannel: channelName } : o));
+      }
+    } catch (err) {
+      setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, slackChannel: channelName } : o));
+    } finally {
+      setCreatingChannelId(null);
     }
   };
 
-  const filteredRequests = requests.filter(req => {
-    const matchesStatus = statusFilter === 'all' || req.status === statusFilter;
-    return matchesStatus;
-  });
+  const getPriorityBadge = (tier: number, amount: number) => {
+    if (amount >= 15000 || tier === 5) {
+      return { label: '$15,000+ (Tier 1 Priority)', bg: 'bg-purple-100 text-purple-900 border-purple-300' };
+    }
+    if (amount >= 7500 || tier === 4) {
+      return { label: '$7,500 - $15,000 (High)', bg: 'bg-blue-100 text-blue-900 border-blue-300' };
+    }
+    if (amount >= 3000 || tier === 3) {
+      return { label: '$3,000 - $7,500 (Medium)', bg: 'bg-emerald-100 text-emerald-900 border-emerald-300' };
+    }
+    if (amount >= 1000 || tier === 2) {
+      return { label: '$1,000 - $3,000 (Standard)', bg: 'bg-amber-100 text-amber-900 border-amber-300' };
+    }
+    return { label: 'Under $1,000 (Micro)', bg: 'bg-gray-100 text-gray-800 border-gray-300' };
+  };
+
+  const getStateBadge = (status: string) => {
+    switch (status) {
+      case 'active':
+        return { label: 'Active / Paid', bg: 'bg-emerald-50 text-emerald-700 border-emerald-200' };
+      case 'pending_payment':
+        return { label: 'Pending Payment', bg: 'bg-amber-50 text-amber-700 border-amber-200' };
+      case 'lead_captured':
+      case 'draft':
+        return { label: 'Lead / Draft', bg: 'bg-blue-50 text-blue-700 border-blue-200' };
+      case 'completed':
+        return { label: 'Completed', bg: 'bg-purple-50 text-purple-700 border-purple-200' };
+      case 'cancelled':
+        return { label: 'Cancelled', bg: 'bg-red-50 text-red-700 border-red-200' };
+      default:
+        return { label: status, bg: 'bg-gray-100 text-gray-700 border-gray-200' };
+    }
+  };
 
   return (
-    <div className="space-y-6">
-      {/* Filter Tabs Header */}
-      <div className="flex items-center justify-between gap-4 border-b border-gray-200 pb-3">
-        <div className="flex items-center gap-1.5 overflow-x-auto">
-          {(['all', 'pending', 'approved', 'declined'] as const).map(tab => (
+    <div className="space-y-6 font-['Inter'] text-gray-900">
+      
+      {/* Controls Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+        
+        {/* State Filter Tabs */}
+        <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
+          {[
+            { id: 'all', label: 'All Opportunities' },
+            { id: 'lead_captured', label: 'Leads & Drafts' },
+            { id: 'pending_payment', label: 'Pending Payment' },
+            { id: 'active', label: 'Active / Paid' },
+            { id: 'completed', label: 'Completed' }
+          ].map(tab => (
             <button
-              key={tab}
+              key={tab.id}
               type="button"
-              onClick={() => setStatusFilter(tab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold capitalize transition-colors cursor-pointer whitespace-nowrap ${
-                statusFilter === tab
+              onClick={() => setStateFilter(tab.id)}
+              className={`px-3 py-1.5 rounded-lg font-semibold transition-colors cursor-pointer whitespace-nowrap ${
+                stateFilter === tab.id
                   ? 'bg-gray-900 text-white'
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
               }`}
             >
-              {tab === 'pending' ? `Pending (${pendingCount})` : tab}
+              {tab.label}
             </button>
           ))}
         </div>
+
+        {/* Sort Dropdown */}
+        <div className="flex items-center gap-2 shrink-0">
+          <ArrowUpDown className="w-4 h-4 text-gray-400" />
+          <span className="text-xs text-gray-500 font-semibold">Sort:</span>
+          <select
+            value={sortBy}
+            onChange={e => setSortBy(e.target.value as any)}
+            className="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-xs font-semibold focus:outline-none"
+          >
+            <option value="priority">Budget Priority (Highest First)</option>
+            <option value="budget">Investment Amount</option>
+            <option value="date">Date Created</option>
+          </select>
+        </div>
       </div>
 
-      {/* Requests Table */}
-      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      {/* Opportunities Table */}
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full border-collapse text-left">
             <thead>
-              <tr className="bg-gray-50/70 text-[10px] font-semibold text-gray-400 uppercase tracking-wider border-b border-gray-100">
-                <th className="pl-6 pr-4 py-3.5">Advertiser</th>
-                <th className="px-4 py-3.5">Placement</th>
-                <th className="px-4 py-3.5">Target Market</th>
-                <th className="px-4 py-3.5">Budget</th>
-                <th className="px-4 py-3.5">Start Date</th>
-                <th className="px-4 py-3.5">Status</th>
+              <tr className="bg-gray-50/70 text-[10px] font-bold text-gray-400 uppercase tracking-wider border-b border-gray-100">
+                <th className="pl-6 pr-4 py-3.5">Brand / Company</th>
+                <th className="px-4 py-3.5">Budget Priority Tier</th>
+                <th className="px-4 py-3.5">Total Deal Value</th>
+                <th className="px-4 py-3.5">Campaign State</th>
+                <th className="px-4 py-3.5">Internal Slack Channel</th>
                 <th className="pr-6 pl-4 py-3.5 text-right">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-100 text-xs">
-              {filteredRequests.length === 0 ? (
+              {processedOpportunities.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="p-8 text-center text-gray-400 text-xs">
-                    No ad requests found.
+                  <td colSpan={6} className="p-8 text-center text-gray-400">
+                    No leads or campaigns found matching selected filters.
                   </td>
                 </tr>
               ) : (
-                filteredRequests.map((req) => (
-                  <tr key={req.id} className="hover:bg-gray-50/60 transition-colors">
-                    <td className="pl-6 pr-4 py-4">
-                      <span className="font-semibold text-gray-900 block">{req.companyName}</span>
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className="font-medium text-gray-800">{req.placement}</span>
-                    </td>
-                    <td className="px-4 py-4 text-gray-600">
-                      {req.targetMarket}
-                    </td>
-                    <td className="px-4 py-4 font-semibold text-gray-900">
-                      {req.budget}
-                    </td>
-                    <td className="px-4 py-4 text-gray-500">
-                      {req.startDate}
-                    </td>
-                    <td className="px-4 py-4">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-semibold capitalize ${
-                        req.status === 'pending' ? 'bg-amber-50 text-amber-700' :
-                        req.status === 'approved' ? 'bg-emerald-50 text-emerald-700' :
-                        'bg-red-50 text-red-700'
-                      }`}>
-                        {req.status}
-                      </span>
-                    </td>
-                    <td className="pr-6 pl-4 py-4 text-right">
-                      <div className="flex items-center justify-end gap-1.5">
+                processedOpportunities.map(opp => {
+                  const pBadge = getPriorityBadge(opp.priorityTier, opp.totalAmount);
+                  const sBadge = getStateBadge(opp.status);
+                  const companySlug = opp.advertiser?.companySlug || 'company';
+
+                  return (
+                    <tr key={opp.id} className="hover:bg-gray-50/60 transition-colors">
+                      <td className="pl-6 pr-4 py-4">
+                        <span className="font-bold text-gray-900 block">{opp.advertiser?.brandName || opp.name}</span>
+                        <span className="text-[11px] text-gray-500">{opp.advertiser?.companyName}</span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border ${pBadge.bg}`}>
+                          {pBadge.label}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4 font-bold text-gray-900">
+                        ${opp.totalAmount} {opp.currency}
+                      </td>
+
+                      <td className="px-4 py-4">
+                        <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-[10px] font-bold border capitalize ${sBadge.bg}`}>
+                          {sBadge.label}
+                        </span>
+                      </td>
+
+                      <td className="px-4 py-4">
+                        {opp.slackChannel ? (
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 bg-slate-100 text-slate-800 rounded-lg text-[11px] font-mono font-semibold">
+                            <Hash className="w-3 h-3 text-slate-500" />
+                            <span>{opp.slackChannel}</span>
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            disabled={creatingChannelId === opp.id}
+                            onClick={() => handleCreateSlackChannel(opp)}
+                            className="px-2.5 py-1 bg-[#4A154B] hover:bg-[#3F0E40] text-white rounded-lg text-[11px] font-semibold transition-colors flex items-center gap-1 cursor-pointer"
+                          >
+                            <Hash className="w-3 h-3" />
+                            <span>{creatingChannelId === opp.id ? 'Creating...' : `Create #ads-${companySlug}`}</span>
+                          </button>
+                        )}
+                      </td>
+
+                      <td className="pr-6 pl-4 py-4 text-right">
                         <button
                           type="button"
-                          onClick={() => setSelectedRequest(req)}
-                          className="p-1.5 text-gray-400 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                          title="View proposal details"
+                          onClick={() => setSelectedOpp(opp)}
+                          className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center gap-1 ml-auto"
                         >
-                          <Eye className="w-4 h-4" />
+                          <Eye className="w-3.5 h-3.5" />
+                          <span>Details</span>
                         </button>
-                        {req.status === 'pending' && (
-                          <>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStatus(req.id, 'approved')}
-                              className="p-1.5 text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors cursor-pointer"
-                              title="Approve request"
-                            >
-                              <Check className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleUpdateStatus(req.id, 'declined')}
-                              className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors cursor-pointer"
-                              title="Decline request"
-                            >
-                              <X className="w-4 h-4" />
-                            </button>
-                          </>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>
         </div>
       </div>
 
-      {/* Details Modal */}
-      {selectedRequest && (
+      {/* Opportunity Details Modal */}
+      {selectedOpp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-gray-200 max-w-lg w-full p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-gray-200 max-w-xl w-full p-6 space-y-5">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div>
-                <h3 className="text-base font-bold text-gray-900">{selectedRequest.companyName}</h3>
-                <p className="text-xs text-gray-400">Ad Proposal #{selectedRequest.id}</p>
+                <h3 className="text-base font-bold text-gray-900">{selectedOpp.advertiser?.brandName || selectedOpp.name}</h3>
+                <p className="text-xs text-gray-400">Opportunity Ref #{selectedOpp.id}</p>
               </div>
               <button
                 type="button"
-                onClick={() => setSelectedRequest(null)}
+                onClick={() => setSelectedOpp(null)}
                 className="p-2 text-gray-400 hover:text-gray-600 rounded-lg cursor-pointer"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-gray-50 p-3.5 rounded-xl">
+            <div className="space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <div>
-                  <span className="text-gray-400 block text-[10px]">Contact Person</span>
-                  <span className="font-semibold text-gray-900">{selectedRequest.contactName}</span>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Contact Name</span>
+                  <span className="font-semibold text-gray-900">{selectedOpp.contact?.fullName || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block text-[10px]">Email</span>
-                  <span className="font-semibold text-gray-900">{selectedRequest.email}</span>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Contact Email</span>
+                  <span className="font-semibold text-gray-900">{selectedOpp.contact?.email || 'N/A'}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block text-[10px]">Placement</span>
-                  <span className="font-semibold text-gray-900">{selectedRequest.placement}</span>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Campaign Objective</span>
+                  <span className="font-semibold text-gray-900">{selectedOpp.objective}</span>
                 </div>
                 <div>
-                  <span className="text-gray-400 block text-[10px]">Proposed Budget</span>
-                  <span className="font-semibold text-gray-900 text-sm">{selectedRequest.budget}</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[10px]">Campaign Period</span>
-                  <span className="font-medium text-gray-900">{selectedRequest.startDate} ({selectedRequest.duration})</span>
-                </div>
-                <div>
-                  <span className="text-gray-400 block text-[10px]">Target Region</span>
-                  <span className="font-medium text-gray-900">{selectedRequest.targetMarket}</span>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Total Deal Amount</span>
+                  <span className="font-bold text-gray-900 text-sm">${selectedOpp.totalAmount} {selectedOpp.currency}</span>
                 </div>
               </div>
 
-              <div>
-                <span className="text-gray-500 font-semibold block mb-1">Campaign Description / Notes</span>
-                <p className="text-gray-700 bg-gray-50 p-3.5 rounded-xl leading-relaxed">
-                  {selectedRequest.notes}
-                </p>
-              </div>
+              {selectedOpp.slackChannel && (
+                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+                  <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                    <Hash className="w-4 h-4 text-[#4A154B]" />
+                    <span>Internal Slack Dispatch Channel: <strong>{selectedOpp.slackChannel}</strong></span>
+                  </span>
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                    Channel Created
+                  </span>
+                </div>
+              )}
+
+              {selectedOpp.accessToken && (
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between">
+                  <div>
+                    <span className="text-[10px] text-gray-400 uppercase font-bold block">Client Workspace Token URL</span>
+                    <code className="text-xs font-mono font-bold text-gray-800">/campaign/{selectedOpp.accessToken}</code>
+                  </div>
+                  <a
+                    href={`/campaign/${selectedOpp.accessToken}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="text-[#FF0000] hover:underline text-xs font-bold flex items-center gap-1"
+                  >
+                    <span>Open Workspace</span>
+                    <ExternalLink className="w-3.5 h-3.5" />
+                  </a>
+                </div>
+              )}
             </div>
 
-            <div className="pt-4 flex items-center justify-end gap-3 border-t border-gray-100">
-              {selectedRequest.status === 'pending' && (
-                <>
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateStatus(selectedRequest.id, 'declined')}
-                    className="px-4 py-2 text-xs font-semibold text-red-600 hover:bg-red-50 rounded-xl transition-colors cursor-pointer"
-                  >
-                    Decline
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => handleUpdateStatus(selectedRequest.id, 'approved')}
-                    className="px-5 py-2 text-xs font-semibold bg-[#FF0000] hover:bg-red-700 text-white rounded-xl transition-colors cursor-pointer"
-                  >
-                    Approve Proposal
-                  </button>
-                </>
-              )}
-              {selectedRequest.status !== 'pending' && (
-                <button
-                  type="button"
-                  onClick={() => setSelectedRequest(null)}
-                  className="px-4 py-2 text-xs font-semibold bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-xl transition-colors cursor-pointer"
-                >
-                  Close
-                </button>
-              )}
+            <div className="pt-4 flex items-center justify-end border-t border-gray-100">
+              <button
+                type="button"
+                onClick={() => setSelectedOpp(null)}
+                className="px-5 py-2 text-xs font-semibold bg-gray-900 hover:bg-black text-white rounded-xl transition-colors cursor-pointer"
+              >
+                Close
+              </button>
             </div>
           </div>
         </div>
