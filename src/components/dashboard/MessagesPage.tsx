@@ -3,14 +3,7 @@ import {
   Mail, 
   Search, 
   Trash2, 
-  Star, 
-  Reply, 
-  MoreHorizontal, 
-  CheckCircle2, 
-  Clock, 
-  Send,
-  User,
-  Paperclip
+  Star 
 } from 'lucide-react';
 
 interface Message {
@@ -82,7 +75,6 @@ export default function MessagesPage() {
   const [selectedMessageId, setSelectedMessageId] = useState<string>(INITIAL_MESSAGES[0].id);
   const [filter, setFilter] = useState<'all' | 'unread' | 'starred'>('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [replyText, setReplyText] = useState('');
 
   const selectedMessage = messages.find(m => m.id === selectedMessageId);
 
@@ -279,47 +271,9 @@ export default function MessagesPage() {
               </div>
 
               {/* Message Body */}
-              <div className="p-6 flex-1 overflow-y-auto space-y-6">
+              <div className="p-6 flex-1 overflow-y-auto">
                 <div className="text-xs text-gray-800 leading-relaxed whitespace-pre-line bg-white p-5 rounded-xl border border-gray-100">
                   {selectedMessage.body}
-                </div>
-
-                {/* Reply Form */}
-                <div className="bg-white p-4 rounded-xl border border-gray-200 space-y-3">
-                  <div className="flex items-center justify-between text-xs font-semibold text-gray-700">
-                    <span className="flex items-center gap-1.5">
-                      <Reply className="w-3.5 h-3.5 text-[#FF0000]" />
-                      <span>Reply to {selectedMessage.sender}</span>
-                    </span>
-                  </div>
-                  <textarea
-                    rows={4}
-                    value={replyText}
-                    onChange={(e) => setReplyText(e.target.value)}
-                    placeholder="Write your response..."
-                    className="w-full p-3 bg-gray-50 border border-gray-200 rounded-xl text-xs text-gray-900 placeholder-gray-400 focus:outline-none focus:border-[#FF0000] resize-none"
-                  />
-                  <div className="flex items-center justify-between pt-1">
-                    <button
-                      type="button"
-                      className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
-                      title="Attach file"
-                    >
-                      <Paperclip className="w-4 h-4" />
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (!replyText.trim()) return;
-                        alert('Reply sent to ' + selectedMessage.email);
-                        setReplyText('');
-                      }}
-                      className="flex items-center gap-2 px-4 py-2 bg-[#FF0000] hover:bg-red-700 text-white rounded-xl text-xs font-semibold transition-all cursor-pointer"
-                    >
-                      <Send className="w-3.5 h-3.5" />
-                      <span>Send Reply</span>
-                    </button>
-                  </div>
                 </div>
               </div>
             </div>
