@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Save, Check } from 'lucide-react';
 
-type PromptType = 'main_article' | 'sponsored_article' | 'ad_creative_copy' | 'headline' | 'seo' | 'social_captions' | 'ideas' | 'translations';
+type PromptType = 'main_article' | 'sponsored_article' | 'headline' | 'seo' | 'social_captions' | 'ideas' | 'translations';
 
 const DEFAULT_PROMPTS: Record<PromptType, string> = {
   main_article: `You are an expert AI journalist and content strategist writing for The961, Lebanon's leading English-language digital news and media platform.
@@ -37,16 +37,6 @@ Draft a high-performing sponsored article for brand partner "{brand_name}" targe
    - Engaging Lead Paragraph Hook
    - 2-3 Subsections (H2/H3) highlighting brand benefits
    - Clear CTA Block with button-worthy link text`,
-
-  ad_creative_copy: `You are a digital advertising strategist creating conversion-focused ad creative copy for The961 commercial campaigns.
-
-### OBJECTIVE:
-Formulate persuasive ad creative text variants for "{brand_name}".
-
-### REQUIREMENTS:
-1. Banner & Widget Headlines: 5 options under 50 characters each.
-2. Primary Body Copy: 3 variations under 125 characters focused on value and urgency.
-3. Call-To-Action (CTA) Phrases: 4 punchy options (e.g., "Claim Exclusive Offer", "Explore Packages", "Book Now").`,
 
   headline: `Generate 5 viral yet journalistic headlines for an article about {article_title} in the {category} section. Ensure headlines are under 70 characters and follow The961 editorial style.`,
 
@@ -137,7 +127,6 @@ export default function AIPromptsPage() {
         >
           <option value="main_article">Main Article Writer</option>
           <option value="sponsored_article">Sponsored Article Writer</option>
-          <option value="ad_creative_copy">Ad Copy & Creative Generator</option>
           <option value="headline">Headline</option>
           <option value="seo">SEO</option>
           <option value="social_captions">Social Captions</option>

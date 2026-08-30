@@ -9,7 +9,7 @@ describe('AI Prompts Dashboard - Advertising Prompts & Settings', () => {
     localStorage.clear();
   });
 
-  it('renders all prompt options including Sponsored Article Writer and Ad Copy', () => {
+  it('renders prompt options including Sponsored Article Writer', () => {
     render(
       <MemoryRouter>
         <AIPromptsPage />
@@ -19,7 +19,7 @@ describe('AI Prompts Dashboard - Advertising Prompts & Settings', () => {
     expect(screen.getByText('AI Prompts')).toBeDefined();
     expect(screen.getByText('Main Article Writer')).toBeDefined();
     expect(screen.getByText('Sponsored Article Writer')).toBeDefined();
-    expect(screen.getByText('Ad Copy & Creative Generator')).toBeDefined();
+    expect(screen.queryByText('Ad Copy & Creative Generator')).toBeNull();
   });
 
   it('switches to Sponsored Article Writer prompt and displays brand guidelines', () => {

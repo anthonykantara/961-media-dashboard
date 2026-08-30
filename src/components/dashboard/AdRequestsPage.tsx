@@ -331,7 +331,7 @@ export default function AdRequestsPage() {
           <Link
             to="/dashboard/ai?type=sponsored_article"
             className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0"
-            title="Configure AI Prompts for Sponsored Article Writer & Ad Copy"
+            title="Configure AI Prompts for Sponsored Article Writer"
           >
             <Bot className="w-3.5 h-3.5 text-[#FF0000]" />
             <span>AI Article Settings</span>
@@ -509,7 +509,7 @@ export default function AdRequestsPage() {
               <div className="p-3 bg-red-50/50 border border-red-100 rounded-xl flex items-center justify-between">
                 <div>
                   <span className="text-[10px] text-gray-500 uppercase font-bold block">AI Content Settings</span>
-                  <span className="text-xs font-medium text-gray-700">Sponsored article & ad creative prompt templates</span>
+                  <span className="text-xs font-medium text-gray-700">Sponsored article prompt templates</span>
                 </div>
                 <Link
                   to="/dashboard/ai?type=sponsored_article"
