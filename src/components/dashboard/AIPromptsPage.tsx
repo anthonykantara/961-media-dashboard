@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Save, Check } from 'lucide-react';
 
-type PromptType = 'main_article' | 'headline' | 'seo' | 'social_captions' | 'ideas' | 'translations';
+type PromptType = 'main_article' | 'sponsored_article' | 'ad_creative_copy' | 'headline' | 'seo' | 'social_captions' | 'ideas' | 'translations';
 
 const DEFAULT_PROMPTS: Record<PromptType, string> = {
   main_article: `You are an expert AI journalist and content strategist writing for The961, Lebanon's leading English-language digital news and media platform.
@@ -21,6 +22,32 @@ const DEFAULT_PROMPTS: Record<PromptType, string> = {
 - Include a compelling headline (H1) and a 1-sentence SEO meta description.
 - Use subheadings (H2, H3) to break up long sections.`,
 
+  sponsored_article: `You are an expert commercial copywriter and sponsored content writer for The961.
+
+### OBJECTIVE:
+Draft a high-performing sponsored article for brand partner "{brand_name}" targeting The961's regional and diaspora readers.
+
+### SPONSORED CONTENT GUIDELINES:
+1. Editorial Balance: Seamlessly blend authentic storytelling with the brand's key value proposition.
+2. Tone: Welcoming, authoritative, native, and persuasive without sounding like a hard sell.
+3. Disclosure & Compliance: Include clear, natural sponsorship disclosures in accordance with editorial standards.
+4. Call to Action (CTA): Conclude with a strong, action-oriented section driving reader traffic to {campaign_landing_url} or relevant special offer.
+5. Structure:
+   - Catchy, high-CTR Headline (H1)
+   - Engaging Lead Paragraph Hook
+   - 2-3 Subsections (H2/H3) highlighting brand benefits
+   - Clear CTA Block with button-worthy link text`,
+
+  ad_creative_copy: `You are a digital advertising strategist creating conversion-focused ad creative copy for The961 commercial campaigns.
+
+### OBJECTIVE:
+Formulate persuasive ad creative text variants for "{brand_name}".
+
+### REQUIREMENTS:
+1. Banner & Widget Headlines: 5 options under 50 characters each.
+2. Primary Body Copy: 3 variations under 125 characters focused on value and urgency.
+3. Call-To-Action (CTA) Phrases: 4 punchy options (e.g., "Claim Exclusive Offer", "Explore Packages", "Book Now").`,
+
   headline: `Generate 5 viral yet journalistic headlines for an article about {article_title} in the {category} section. Ensure headlines are under 70 characters and follow The961 editorial style.`,
 
   seo: `Write a high-CTR SEO meta description (under 155 characters) and 5 relevant search tags for an article titled "{article_title}".`,
@@ -33,7 +60,22 @@ const DEFAULT_PROMPTS: Record<PromptType, string> = {
 };
 
 export default function AIPromptsPage() {
-  const [selectedPromptType, setSelectedPromptType] = useState<PromptType>('main_article');
+  const [searchParams] = useSearchParams();
+  const initialTypeFromUrl = searchParams.get('type') as PromptType | null;
+
+  const [selectedPromptType, setSelectedPromptType] = useState<PromptType>(() => {
+    if (initialTypeFromUrl && initialTypeFromUrl in DEFAULT_PROMPTS) {
+      return initialTypeFromUrl;
+    }
+    return 'main_article';
+  });
+
+  useEffect(() => {
+    if (initialTypeFromUrl && initialTypeFromUrl in DEFAULT_PROMPTS) {
+      setSelectedPromptType(initialTypeFromUrl);
+    }
+  }, [initialTypeFromUrl]);
+
   const [prompts, setPrompts] = useState<Record<PromptType, string>>(() => {
     try {
       const saved = localStorage.getItem('961_ai_prompts');
@@ -93,7 +135,9 @@ export default function AIPromptsPage() {
           onChange={(e) => setSelectedPromptType(e.target.value as PromptType)}
           className="w-full sm:w-72 p-3 bg-white border border-gray-200 rounded-xl text-xs font-semibold text-gray-900 focus:outline-none focus:border-primary transition-colors cursor-pointer"
         >
-          <option value="main_article">Main Article</option>
+          <option value="main_article">Main Article Writer</option>
+          <option value="sponsored_article">Sponsored Article Writer</option>
+          <option value="ad_creative_copy">Ad Copy & Creative Generator</option>
           <option value="headline">Headline</option>
           <option value="seo">SEO</option>
           <option value="social_captions">Social Captions</option>
