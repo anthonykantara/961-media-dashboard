@@ -22,7 +22,8 @@ describe('Admin Operations Dashboard - Leads & Campaigns', () => {
         <AdRequestsPage />
       </MemoryRouter>
     );
-    const sortSelect = screen.getByRole('combobox');
+    const selects = screen.getAllByRole('combobox');
+    const sortSelect = selects[selects.length - 1];
     fireEvent.change(sortSelect, { target: { value: 'budget' } });
     expect(screen.getByText(/18500 USD/i)).toBeDefined();
   });
@@ -35,5 +36,48 @@ describe('Admin Operations Dashboard - Leads & Campaigns', () => {
     );
     const slackButtons = screen.getAllByText(/Create #ads-/i);
     expect(slackButtons.length).toBeGreaterThan(0);
+  });
+
+  it('filters opportunities by search query', () => {
+    render(
+      <MemoryRouter>
+        <AdRequestsPage />
+      </MemoryRouter>
+    );
+    const searchInput = screen.getByPlaceholderText('Search leads...');
+    fireEvent.change(searchInput, { target: { value: 'Riyadh' } });
+
+    expect(screen.getAllByText(/Riyadh Seasons/i).length).toBeGreaterThan(0);
+    expect(screen.queryByText(/BankMed/i)).toBeNull();
+  });
+
+  it('opens details modal showing advertiser info, contact, and itemized campaign package breakdown', () => {
+    render(
+      <MemoryRouter>
+        <AdRequestsPage />
+      </MemoryRouter>
+    );
+    const detailsButtons = screen.getAllByText('Details');
+    fireEvent.click(detailsButtons[0]);
+
+    expect(screen.getByText('Opportunity Ref #cmp_sa_tier5')).toBeDefined();
+    expect(screen.getByText('Fahad Al-Harbi')).toBeDefined();
+    expect(screen.getByText('Itemized Campaign Package Breakdown')).toBeDefined();
+    expect(screen.getByText('Featured Sponsored Article')).toBeDefined();
+  });
+
+  it('allows updating campaign state from the details modal', () => {
+    render(
+      <MemoryRouter>
+        <AdRequestsPage />
+      </MemoryRouter>
+    );
+    const detailsButtons = screen.getAllByText('Details');
+    fireEvent.click(detailsButtons[0]);
+
+    const statusSelect = screen.getByDisplayValue('Active / Paid');
+    fireEvent.change(statusSelect, { target: { value: 'completed' } });
+
+    expect(screen.getByDisplayValue('Completed')).toBeDefined();
   });
 });

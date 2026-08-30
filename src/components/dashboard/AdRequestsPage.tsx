@@ -12,7 +12,11 @@ import {
   DollarSign,
   AlertCircle,
   ExternalLink,
-  Bot
+  Bot,
+  Search,
+  Phone,
+  Globe,
+  Tag
 } from 'lucide-react';
 
 export interface OpportunityItem {
@@ -191,6 +195,7 @@ const INITIAL_OPPORTUNITIES: OpportunityItem[] = [
 export default function AdRequestsPage() {
   const [opportunities, setOpportunities] = useState<OpportunityItem[]>(INITIAL_OPPORTUNITIES);
   const [stateFilter, setStateFilter] = useState<string>('all');
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [sortBy, setSortBy] = useState<'priority' | 'budget' | 'date'>('priority');
   const [selectedOpp, setSelectedOpp] = useState<OpportunityItem | null>(null);
   const [creatingChannelId, setCreatingChannelId] = useState<string | null>(null);
@@ -212,17 +217,43 @@ export default function AdRequestsPage() {
     fetchLeadsAndCampaigns();
   }, []);
 
-  // Filter and sort opportunities by budget priority and state
+  const getCompanySlug = (opp: OpportunityItem) => {
+    if (opp.advertiser?.companySlug && opp.advertiser.companySlug.trim()) {
+      return opp.advertiser.companySlug;
+    }
+    const base = opp.advertiser?.brandName || opp.advertiser?.companyName || opp.name;
+    return base.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'company';
+  };
+
+  // Filter and sort opportunities by budget priority, state, and search query
   const processedOpportunities = useMemo(() => {
     let list = [...opportunities];
 
     if (stateFilter !== 'all') {
-      list = list.filter(o => o.status === stateFilter);
+      if (stateFilter === 'lead_captured') {
+        list = list.filter(o => o.status === 'lead_captured' || o.status === 'draft');
+      } else {
+        list = list.filter(o => o.status === stateFilter);
+      }
+    }
+
+    if (searchQuery.trim()) {
+      const q = searchQuery.toLowerCase().trim();
+      list = list.filter(o =>
+        (o.advertiser?.brandName?.toLowerCase().includes(q)) ||
+        (o.advertiser?.companyName?.toLowerCase().includes(q)) ||
+        (o.contact?.fullName?.toLowerCase().includes(q)) ||
+        (o.contact?.email?.toLowerCase().includes(q)) ||
+        (o.name.toLowerCase().includes(q)) ||
+        (o.objective.toLowerCase().includes(q))
+      );
     }
 
     list.sort((a, b) => {
       if (sortBy === 'priority') {
-        if (b.priorityTier !== a.priorityTier) return b.priorityTier - a.priorityTier;
+        const tierA = a.priorityTier || (a.totalAmount >= 15000 ? 5 : a.totalAmount >= 7500 ? 4 : a.totalAmount >= 3000 ? 3 : a.totalAmount >= 1000 ? 2 : 1);
+        const tierB = b.priorityTier || (b.totalAmount >= 15000 ? 5 : b.totalAmount >= 7500 ? 4 : b.totalAmount >= 3000 ? 3 : b.totalAmount >= 1000 ? 2 : 1);
+        if (tierB !== tierA) return tierB - tierA;
         return b.totalAmount - a.totalAmount;
       }
       if (sortBy === 'budget') {
@@ -232,12 +263,12 @@ export default function AdRequestsPage() {
     });
 
     return list;
-  }, [opportunities, stateFilter, sortBy]);
+  }, [opportunities, stateFilter, searchQuery, sortBy]);
 
   // Handle Slack channel creation trigger
   const handleCreateSlackChannel = async (opp: OpportunityItem) => {
     setCreatingChannelId(opp.id);
-    const companySlug = opp.advertiser?.companySlug || 'company';
+    const companySlug = getCompanySlug(opp);
     const channelName = `#ads-${companySlug.substring(0, 50)}`;
 
     try {
@@ -254,11 +285,24 @@ export default function AdRequestsPage() {
         }
       } else {
         setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, slackChannel: channelName } : o));
+        if (selectedOpp && selectedOpp.id === opp.id) {
+          setSelectedOpp(prev => prev ? { ...prev, slackChannel: channelName } : null);
+        }
       }
     } catch (err) {
       setOpportunities(prev => prev.map(o => o.id === opp.id ? { ...o, slackChannel: channelName } : o));
+      if (selectedOpp && selectedOpp.id === opp.id) {
+        setSelectedOpp(prev => prev ? { ...prev, slackChannel: channelName } : null);
+      }
     } finally {
       setCreatingChannelId(null);
+    }
+  };
+
+  const handleUpdateStatus = (oppId: string, newStatus: OpportunityItem['status']) => {
+    setOpportunities(prev => prev.map(o => o.id === oppId ? { ...o, status: newStatus } : o));
+    if (selectedOpp && selectedOpp.id === oppId) {
+      setSelectedOpp(prev => prev ? { ...prev, status: newStatus } : null);
     }
   };
 
@@ -296,11 +340,22 @@ export default function AdRequestsPage() {
     }
   };
 
+  const formatProductName = (productId: string) => {
+    const map: Record<string, string> = {
+      prod_featured_article: 'Featured Sponsored Article',
+      prod_social_video: 'Social Video Feature',
+      prod_display_banner: 'Display Banner Placement',
+      prod_newsletter_feature: 'Newsletter Sponsorship Feature',
+      prod_dedicated_social_post: 'Dedicated Social Media Post',
+    };
+    return map[productId] || productId.replace(/^prod_/, '').replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
+  };
+
   return (
     <div className="space-y-6 font-['Inter'] text-gray-900">
       
       {/* Controls Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
+      <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-gray-200 shadow-xs">
         
         {/* State Filter Tabs */}
         <div className="flex items-center gap-1.5 overflow-x-auto text-xs">
@@ -326,8 +381,19 @@ export default function AdRequestsPage() {
           ))}
         </div>
 
-        {/* Sort Dropdown & AI Settings */}
-        <div className="flex items-center gap-2 shrink-0">
+        {/* Search, Sort Dropdown & AI Settings */}
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="relative">
+            <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Search leads..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="pl-8 pr-3 py-1.5 bg-gray-50 border border-gray-200 rounded-lg text-xs font-medium text-gray-900 placeholder-gray-400 focus:outline-none focus:border-gray-400 w-44"
+            />
+          </div>
+
           <Link
             to="/dashboard/ai?type=sponsored_article"
             className="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-800 text-xs font-semibold rounded-lg transition-colors flex items-center gap-1.5 shrink-0"
@@ -336,17 +402,20 @@ export default function AdRequestsPage() {
             <Bot className="w-3.5 h-3.5 text-[#FF0000]" />
             <span>AI Article Settings</span>
           </Link>
-          <ArrowUpDown className="w-4 h-4 text-gray-400" />
-          <span className="text-xs text-gray-500 font-semibold">Sort:</span>
-          <select
-            value={sortBy}
-            onChange={e => setSortBy(e.target.value as any)}
-            className="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-xs font-semibold focus:outline-none"
-          >
-            <option value="priority">Budget Priority (Highest First)</option>
-            <option value="budget">Investment Amount</option>
-            <option value="date">Date Created</option>
-          </select>
+
+          <div className="flex items-center gap-1.5">
+            <ArrowUpDown className="w-4 h-4 text-gray-400" />
+            <span className="text-xs text-gray-500 font-semibold">Sort:</span>
+            <select
+              value={sortBy}
+              onChange={e => setSortBy(e.target.value as any)}
+              className="px-3 py-1.5 bg-gray-50 border border-gray-300 rounded-lg text-xs font-semibold focus:outline-none"
+            >
+              <option value="priority">Budget Priority (Highest First)</option>
+              <option value="budget">Investment Amount</option>
+              <option value="date">Date Created</option>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -375,7 +444,7 @@ export default function AdRequestsPage() {
                 processedOpportunities.map(opp => {
                   const pBadge = getPriorityBadge(opp.priorityTier, opp.totalAmount);
                   const sBadge = getStateBadge(opp.status);
-                  const companySlug = opp.advertiser?.companySlug || 'company';
+                  const companySlug = getCompanySlug(opp);
 
                   return (
                     <tr key={opp.id} className="hover:bg-gray-50/60 transition-colors">
@@ -441,7 +510,7 @@ export default function AdRequestsPage() {
       {/* Opportunity Details Modal */}
       {selectedOpp && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs">
-          <div className="bg-white rounded-2xl border border-gray-200 max-w-xl w-full p-6 space-y-5">
+          <div className="bg-white rounded-2xl border border-gray-200 max-w-2xl w-full p-6 space-y-5 max-h-[90vh] overflow-y-auto">
             <div className="flex items-center justify-between pb-4 border-b border-gray-100">
               <div>
                 <h3 className="text-base font-bold text-gray-900">{selectedOpp.advertiser?.brandName || selectedOpp.name}</h3>
@@ -457,36 +526,137 @@ export default function AdRequestsPage() {
             </div>
 
             <div className="space-y-4 text-xs">
-              <div className="grid grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
+              {/* Advertiser & Contact Information */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 bg-gray-50 p-4 rounded-xl border border-gray-100">
                 <div>
-                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Contact Name</span>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Brand / Company</span>
+                  <span className="font-bold text-gray-900">{selectedOpp.advertiser?.brandName || selectedOpp.name}</span>
+                  {selectedOpp.advertiser?.companyName && (
+                    <span className="text-gray-500 block text-[11px]">{selectedOpp.advertiser.companyName}</span>
+                  )}
+                </div>
+
+                <div>
+                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Contact Person</span>
                   <span className="font-semibold text-gray-900">{selectedOpp.contact?.fullName || 'N/A'}</span>
+                  {selectedOpp.contact?.email && (
+                    <span className="text-gray-500 block text-[11px]">{selectedOpp.contact.email}</span>
+                  )}
+                  {selectedOpp.contact?.phoneNumber && (
+                    <span className="text-gray-500 flex items-center gap-1 text-[11px] mt-0.5">
+                      <Phone className="w-3 h-3 text-gray-400" />
+                      <span>{selectedOpp.contact.phoneNumber}</span>
+                    </span>
+                  )}
                 </div>
-                <div>
-                  <span className="text-gray-400 block text-[10px] uppercase font-bold">Contact Email</span>
-                  <span className="font-semibold text-gray-900">{selectedOpp.contact?.email || 'N/A'}</span>
-                </div>
+
                 <div>
                   <span className="text-gray-400 block text-[10px] uppercase font-bold">Campaign Objective</span>
                   <span className="font-semibold text-gray-900">{selectedOpp.objective}</span>
                 </div>
+
                 <div>
                   <span className="text-gray-400 block text-[10px] uppercase font-bold">Total Deal Amount</span>
                   <span className="font-bold text-gray-900 text-sm">${selectedOpp.totalAmount} {selectedOpp.currency}</span>
                 </div>
+
+                {selectedOpp.advertiser?.website && (
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold">Website</span>
+                    <a
+                      href={selectedOpp.advertiser.website}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="text-primary hover:underline font-semibold flex items-center gap-1"
+                    >
+                      <Globe className="w-3 h-3" />
+                      <span>{selectedOpp.advertiser.website}</span>
+                    </a>
+                  </div>
+                )}
+
+                {selectedOpp.advertiser?.industry && (
+                  <div>
+                    <span className="text-gray-400 block text-[10px] uppercase font-bold">Industry</span>
+                    <span className="font-semibold text-gray-900">{selectedOpp.advertiser.industry}</span>
+                  </div>
+                )}
               </div>
 
-              {selectedOpp.slackChannel && (
-                <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
-                  <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
-                    <Hash className="w-4 h-4 text-[#4A154B]" />
-                    <span>Internal Slack Dispatch Channel: <strong>{selectedOpp.slackChannel}</strong></span>
+              {/* Status Update Control */}
+              <div className="p-3.5 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between gap-3">
+                <div>
+                  <span className="text-[10px] text-gray-400 uppercase font-bold block">Update Campaign State</span>
+                  <span className="text-xs font-semibold text-gray-700">Current: {getStateBadge(selectedOpp.status).label}</span>
+                </div>
+                <select
+                  value={selectedOpp.status}
+                  onChange={(e) => handleUpdateStatus(selectedOpp.id, e.target.value as OpportunityItem['status'])}
+                  className="px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-xs font-semibold text-gray-900 focus:outline-none focus:border-gray-900 cursor-pointer"
+                >
+                  <option value="lead_captured">Lead / Draft</option>
+                  <option value="pending_payment">Pending Payment</option>
+                  <option value="active">Active / Paid</option>
+                  <option value="completed">Completed</option>
+                  <option value="cancelled">Cancelled</option>
+                </select>
+              </div>
+
+              {/* Itemized Deals Table */}
+              {selectedOpp.items && selectedOpp.items.length > 0 && (
+                <div className="space-y-2">
+                  <span className="text-[11px] font-bold text-gray-700 uppercase tracking-wider block">
+                    Itemized Campaign Package Breakdown
                   </span>
-                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
-                    Channel Created
-                  </span>
+                  <div className="border border-gray-200 rounded-xl overflow-hidden">
+                    <table className="w-full text-left border-collapse">
+                      <thead>
+                        <tr className="bg-gray-50 border-b border-gray-200 text-[10px] font-bold text-gray-400 uppercase">
+                          <th className="p-2.5">Product Item</th>
+                          <th className="p-2.5 text-center">Qty</th>
+                          <th className="p-2.5 text-right">Unit Price</th>
+                          <th className="p-2.5 text-right">Total Price</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 text-xs font-medium">
+                        {selectedOpp.items.map(item => (
+                          <tr key={item.id} className="hover:bg-gray-50/50">
+                            <td className="p-2.5 font-semibold text-gray-900">
+                              {formatProductName(item.productId)}
+                            </td>
+                            <td className="p-2.5 text-center text-gray-600">{item.quantity}</td>
+                            <td className="p-2.5 text-right text-gray-600">${item.unitPrice}</td>
+                            <td className="p-2.5 text-right font-bold text-gray-900">${item.totalPrice}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </div>
               )}
+
+              {/* Slack Channel Status & Action */}
+              <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between gap-3">
+                <span className="text-xs font-semibold text-slate-800 flex items-center gap-1.5">
+                  <Hash className="w-4 h-4 text-[#4A154B]" />
+                  <span>Slack Channel: {selectedOpp.slackChannel ? <strong>{selectedOpp.slackChannel}</strong> : <em className="text-gray-400">Not provisioned</em>}</span>
+                </span>
+                {selectedOpp.slackChannel ? (
+                  <span className="text-[10px] text-emerald-600 font-bold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 shrink-0">
+                    Channel Created
+                  </span>
+                ) : (
+                  <button
+                    type="button"
+                    disabled={creatingChannelId === selectedOpp.id}
+                    onClick={() => handleCreateSlackChannel(selectedOpp)}
+                    className="px-3 py-1 bg-[#4A154B] hover:bg-[#3F0E40] text-white rounded-lg text-xs font-semibold transition-colors flex items-center gap-1 cursor-pointer shrink-0"
+                  >
+                    <Hash className="w-3.5 h-3.5" />
+                    <span>{creatingChannelId === selectedOpp.id ? 'Creating...' : `Create #ads-${getCompanySlug(selectedOpp)}`}</span>
+                  </button>
+                )}
+              </div>
 
               {selectedOpp.accessToken && (
                 <div className="p-3 bg-gray-50 border border-gray-200 rounded-xl flex items-center justify-between">
