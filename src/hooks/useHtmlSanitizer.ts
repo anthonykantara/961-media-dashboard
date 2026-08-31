@@ -1,4 +1,4 @@
-import { useCallback, RefObject } from 'react';
+import React, { useCallback, RefObject, ClipboardEvent } from 'react';
 import { sanitizeHtml, sanitizeText } from '../utils/sanitizeHtml';
 
 export interface UseHtmlSanitizerOptions {
@@ -21,7 +21,7 @@ export interface UseHtmlSanitizerOptions {
 export function useHtmlSanitizer(options: UseHtmlSanitizerOptions = {}) {
   const { editorRef, onContentChange } = options;
 
-  const handlePaste = useCallback((e: React.ClipboardEvent<HTMLElement>) => {
+  const handlePaste = useCallback((e: ClipboardEvent<HTMLElement>) => {
     e.preventDefault();
 
     const targetElement = (editorRef?.current || e.currentTarget) as HTMLElement;
@@ -41,8 +41,10 @@ export function useHtmlSanitizer(options: UseHtmlSanitizerOptions = {}) {
         const temp = document.createElement('div');
         temp.innerHTML = sanitizedHtml;
         cleanedText = temp.textContent || temp.innerText || '';
-      } else {
-        cleanedText = clipboardText || '';
+      }
+
+      if (!cleanedText && clipboardText) {
+        cleanedText = clipboardText;
       }
 
       const start = inputEl.selectionStart ?? inputEl.value.length;
@@ -50,7 +52,21 @@ export function useHtmlSanitizer(options: UseHtmlSanitizerOptions = {}) {
       const currentValue = inputEl.value;
 
       const newValue = currentValue.slice(0, start) + cleanedText + currentValue.slice(end);
-      inputEl.value = newValue;
+
+      // Trigger React synthetic value tracking
+      const nativeSetter = Object.getOwnPropertyDescriptor(
+        inputEl instanceof HTMLInputElement
+          ? HTMLInputElement.prototype
+          : HTMLTextAreaElement.prototype,
+        'value'
+      )?.set;
+
+      if (nativeSetter) {
+        nativeSetter.call(inputEl, newValue);
+      } else {
+        inputEl.value = newValue;
+      }
+
       inputEl.selectionStart = inputEl.selectionEnd = start + cleanedText.length;
 
       const event = new Event('input', { bubbles: true });

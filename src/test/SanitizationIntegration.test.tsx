@@ -39,7 +39,7 @@ describe('Sanitization Integration in Editor Suites', () => {
     expect(editor!.innerHTML).toContain('<strong>World</strong>');
   });
 
-  it('sanitizes paste in CreateListiclePage intro contentEditable container', async () => {
+  it('sanitizes paste in CreateListiclePage intro contentEditable container and list item textareas', async () => {
     const { container } = renderWithProviders(<CreateListiclePage />);
     const editor = container.querySelector('[contenteditable="true"]');
     expect(editor).not.toBeNull();
@@ -54,6 +54,21 @@ describe('Sanitization Integration in Editor Suites', () => {
     expect(editor!.innerHTML).not.toContain('style=');
     expect(editor!.innerHTML).not.toContain('background-color');
     expect(editor!.innerHTML).toContain('<a href="https://the961.com">961 Link</a>');
+
+    const itemTextarea = container.querySelector('textarea[placeholder*="Provide commentary"]') as HTMLTextAreaElement;
+    expect(itemTextarea).not.toBeNull();
+
+    const dirtyItemHtml = '<span style="font-family: Arial; color: red;">Dirty listicle item text</span>';
+    const itemClipboardData = {
+      getData: (type: string) => (type === 'text/html' ? dirtyItemHtml : 'Dirty listicle item text')
+    };
+
+    fireEvent.paste(itemTextarea, { clipboardData: itemClipboardData });
+
+    await waitFor(() => {
+      expect(itemTextarea.value).toContain('Dirty listicle item text');
+    });
+    expect(itemTextarea.value).not.toContain('style=');
   });
 
   it('sanitizes paste in CreateExpressPage setup modal and main editor', async () => {

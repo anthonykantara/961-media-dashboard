@@ -30,15 +30,26 @@ const ALLOWED_ATTRIBUTES: Record<string, Set<string>> = {
 /**
  * Validates URLs for a / img / iframe tags to prevent dangerous protocols.
  */
-function isSafeUrl(url: string): boolean {
-  const trimmed = url.trim().toLowerCase();
+function isSafeUrl(url: string, isImage = false): boolean {
+  if (!url) return false;
+  // Strip control characters and whitespace
+  const sanitized = url.replace(/[\x00-\x20\s]/g, '').toLowerCase();
+
   if (
-    trimmed.startsWith('javascript:') ||
-    trimmed.startsWith('data:text/html') ||
-    trimmed.startsWith('vbscript:')
+    sanitized.startsWith('javascript:') ||
+    sanitized.startsWith('vbscript:') ||
+    sanitized.startsWith('file:')
   ) {
     return false;
   }
+
+  if (sanitized.startsWith('data:')) {
+    if (isImage && sanitized.startsWith('data:image/')) {
+      return true;
+    }
+    return false;
+  }
+
   return true;
 }
 
@@ -73,7 +84,9 @@ function cleanNode(node: Node): void {
         for (const attr of attrs) {
           const attrName = attr.name.toLowerCase();
           if (allowedAttrs.has(attrName)) {
-            if ((attrName === 'href' || attrName === 'src') && !isSafeUrl(attr.value)) {
+            if (attrName === 'href' && !isSafeUrl(attr.value, false)) {
+              el.removeAttribute(attr.name);
+            } else if (attrName === 'src' && !isSafeUrl(attr.value, tagName === 'IMG')) {
               el.removeAttribute(attr.name);
             }
           } else {
@@ -82,12 +95,27 @@ function cleanNode(node: Node): void {
           }
         }
 
-        // Unwrap SPAN tags that have no remaining attributes
-        if (tagName === 'SPAN' && el.attributes.length === 0) {
+        // Enforce rel="noopener noreferrer" for target="_blank" links
+        if (tagName === 'A' && el.getAttribute('target') === '_blank') {
+          el.setAttribute('rel', 'noopener noreferrer');
+        }
+
+        // Unwrap SPAN and A tags that have no remaining attributes
+        if ((tagName === 'SPAN' || tagName === 'A') && el.attributes.length === 0) {
           while (el.firstChild) {
             node.insertBefore(el.firstChild, el);
           }
           node.removeChild(el);
+          continue;
+        }
+
+        // Remove empty inline formatting tags that have no child nodes
+        if (
+          ['STRONG', 'B', 'EM', 'I', 'U', 'S', 'STRIKE', 'DEL', 'SUB', 'SUP', 'CODE', 'A'].includes(tagName) &&
+          !el.hasChildNodes()
+        ) {
+          node.removeChild(el);
+          continue;
         }
       } else {
         // Non-whitelisted tag (e.g., <font>, <o:p>, <xml>, <center>, etc.): unwrap its children

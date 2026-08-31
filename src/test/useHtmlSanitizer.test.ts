@@ -1,3 +1,4 @@
+import React from 'react';
 import { describe, it, expect, vi } from 'vitest';
 import { renderHook, act } from '@testing-library/react';
 import { sanitizeHtml, sanitizeText } from '../utils/sanitizeHtml';
@@ -65,6 +66,35 @@ describe('sanitizeHtml Utility', () => {
     expect(cleanHtml).not.toContain('href=');
     expect(cleanHtml).toContain('<p>Safe content</p>');
     expect(cleanHtml).toContain('Click me');
+  });
+
+  it('strips obfuscated javascript links and dangerous data URLs on <a> tags', () => {
+    const dangerousHtml = `
+      <a href="  java\nscript:alert(1)">Obfuscated JS</a>
+      <a href="data:text/html;base64,PHNjcmlwdD5hbGVydCgxKTwvc2NyaXB0Pg==">Data URL</a>
+      <a href="https://the961.com" target="_blank">Valid External Link</a>
+      <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==" alt="Tiny image" />
+    `;
+
+    const cleanHtml = sanitizeHtml(dangerousHtml);
+
+    expect(cleanHtml).not.toContain('java');
+    expect(cleanHtml).not.toContain('data:text/html');
+    expect(cleanHtml).toContain('<a href="https://the961.com" target="_blank" rel="noopener noreferrer">Valid External Link</a>');
+    expect(cleanHtml).toContain('<img src="data:image/png;base64,');
+  });
+
+  it('strips empty inline tags after cleaning', () => {
+    const htmlWithEmptyTags = `
+      <p>Text <strong></strong> and <em></em> <span></span> with <a href="javascript:void(0)">empty link</a></p>
+    `;
+
+    const cleanHtml = sanitizeHtml(htmlWithEmptyTags);
+
+    expect(cleanHtml).not.toContain('<strong></strong>');
+    expect(cleanHtml).not.toContain('<em></em>');
+    expect(cleanHtml).not.toContain('<span></span>');
+    expect(cleanHtml).toContain('<p>Text  and   with empty link</p>');
   });
 });
 

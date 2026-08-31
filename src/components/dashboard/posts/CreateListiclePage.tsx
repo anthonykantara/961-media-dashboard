@@ -178,6 +178,8 @@ export default function CreateListiclePage() {
     onContentChange: (intro) => setFormData(prev => ({ ...prev, intro }))
   });
 
+  const { handlePaste: handleItemTextPaste } = useHtmlSanitizer();
+
   useEffect(() => {
     if (activeTab === 'edit' && introEditorRef.current) {
       introEditorRef.current.innerHTML = formData.intro;
@@ -679,6 +681,10 @@ export default function CreateListiclePage() {
                         rows={3}
                         value={item.text}
                         onChange={(e) => handleUpdateItem(index, 'text', e.target.value)}
+                        onPaste={(e) => {
+                          handleItemTextPaste(e);
+                          handleUpdateItem(index, 'text', e.currentTarget.value);
+                        }}
                         placeholder="Provide commentary, tips, or narrative details for this list item..."
                         className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-sm font-medium focus:border-gray-300 outline-none transition-all text-gray-800 placeholder:text-gray-400 resize-y"
                       />

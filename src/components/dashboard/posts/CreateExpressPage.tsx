@@ -608,7 +608,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
                 ref={editorRef}
                 contentEditable
                 onPaste={handleEditorPaste}
-                className="min-h-[240px] outline-none text-sm text-gray-800 leading-relaxed font-sans focus:ring-0"
+                className="min-h-[240px] outline-none text-sm text-gray-800 leading-relaxed font-sans focus:ring-0 [&_h3]:text-base [&_h3]:font-bold [&_h3]:mt-4 [&_h3]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-[#FF0000] [&_blockquote]:pl-4 [&_blockquote]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#FF0000] [&_a]:underline"
                 style={{ minHeight: '260px' }}
               />
             </div>
@@ -719,6 +719,10 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
                         rows={2}
                         value={slide.text}
                         onChange={(e) => handleSlideTextChange(slide.id, e.target.value)}
+                        onPaste={(e) => {
+                          handleSetupModalPaste(e);
+                          handleSlideTextChange(slide.id, e.currentTarget.value);
+                        }}
                         placeholder={`Enter text content for slide ${slide.id}...`}
                         className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 focus:border-[#FF0000] outline-none transition-all resize-none leading-relaxed"
                       />
