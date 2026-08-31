@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { usePostContext } from './PostContext';
 import { useTeamContext } from '../team/TeamContext';
+import { useHtmlSanitizer } from '../../../hooks/useHtmlSanitizer';
 import AdBanner from '../../AdBanner';
 import SocialPreviewValidator from './SocialPreviewValidator';
 import UnsavedChangesModal from '../../common/UnsavedChangesModal';
@@ -171,6 +172,11 @@ export default function CreateListiclePage() {
   const { showModal, handleConfirm, handleCancel } = useUnsavedChangesProtection(checkIsDirty);
 
   const introEditorRef = useRef<HTMLDivElement>(null);
+
+  const { handlePaste: handleIntroPaste } = useHtmlSanitizer({
+    editorRef: introEditorRef,
+    onContentChange: (intro) => setFormData(prev => ({ ...prev, intro }))
+  });
 
   useEffect(() => {
     if (activeTab === 'edit' && introEditorRef.current) {
@@ -524,6 +530,7 @@ export default function CreateListiclePage() {
                 ref={introEditorRef}
                 contentEditable
                 onInput={(e) => setFormData(prev => ({ ...prev, intro: e.currentTarget.innerHTML }))}
+                onPaste={handleIntroPaste}
                 className="w-full min-h-[140px] p-4 bg-white border border-gray-100 rounded-xl text-sm font-medium leading-relaxed outline-none focus:border-gray-200 transition-all font-sans text-gray-800 overflow-y-auto prose max-w-none"
                 style={{ minHeight: '140px' }}
                 placeholder="Write an introductory lead-in for this listicle..."

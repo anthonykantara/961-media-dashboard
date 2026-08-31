@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { usePostContext } from './PostContext';
 import { useTeamContext } from '../team/TeamContext';
+import { useHtmlSanitizer } from '../../../hooks/useHtmlSanitizer';
 import AdBanner from '../../AdBanner';
 import SocialPreviewValidator from './SocialPreviewValidator';
 import UnsavedChangesModal from '../../common/UnsavedChangesModal';
@@ -143,6 +144,11 @@ export default function CreatePostPage() {
   ];
 
   const editorRef = useRef<HTMLDivElement>(null);
+
+  const { handlePaste: handleEditorPaste } = useHtmlSanitizer({
+    editorRef,
+    onContentChange: (content) => setFormData(prev => ({ ...prev, content }))
+  });
 
   // Visual text formatting helper (using contentEditable commands)
   const applyFormat = (command: string, value: string = '') => {
@@ -751,6 +757,7 @@ export default function CreatePostPage() {
                 ref={editorRef}
                 contentEditable
                 onInput={(e) => setFormData(prev => ({ ...prev, content: e.currentTarget.innerHTML }))}
+                onPaste={handleEditorPaste}
                 className="w-full min-h-[480px] p-4 bg-white border border-gray-100 rounded-xl text-sm font-medium leading-relaxed outline-none focus:border-gray-200 transition-all font-sans text-gray-800 overflow-y-auto prose max-w-none focus:ring-0 [&_h1]:text-xl [&_h1]:font-semibold [&_h1]:mt-4 [&_h1]:mb-2 [&_h2]:text-lg [&_h2]:font-semibold [&_h2]:mt-3 [&_h2]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-gray-200 [&_blockquote]:pl-4 [&_blockquote]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#FF0000] [&_a]:underline"
                 style={{ minHeight: '480px' }}
               />
