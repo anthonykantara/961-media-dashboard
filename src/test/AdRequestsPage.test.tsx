@@ -63,7 +63,7 @@ describe('Admin Operations Dashboard - Leads & Campaigns', () => {
     expect(screen.getByText('Opportunity Ref #cmp_sa_tier5')).toBeDefined();
     expect(screen.getByText('Fahad Al-Harbi')).toBeDefined();
     expect(screen.getByText('Itemized Campaign Package Breakdown')).toBeDefined();
-    expect(screen.getByText('Featured Sponsored Article')).toBeDefined();
+    expect(screen.getByText('Featured Article Package')).toBeDefined();
   });
 
   it('allows updating campaign state from the details modal', () => {
