@@ -8,6 +8,8 @@ import { TeamProvider } from '../components/dashboard/team/TeamContext';
 import CreatePostPage from '../components/dashboard/posts/CreatePostPage';
 import CreateExpressPage from '../components/dashboard/posts/CreateExpressPage';
 import CreateListiclePage from '../components/dashboard/posts/CreateListiclePage';
+import EditUserPage from '../components/dashboard/team/EditUserPage';
+import PostDetailsPage from '../components/dashboard/posts/PostDetailsPage';
 import UnsavedChangesModal from '../components/common/UnsavedChangesModal';
 
 function DummyPostsPage() {
@@ -37,6 +39,9 @@ function renderWithRouter(initialRoute: string) {
           { path: '/dashboard/posts/create', element: <CreatePostPage /> },
           { path: '/dashboard/create/express', element: <CreateExpressPage /> },
           { path: '/dashboard/create/listicle', element: <CreateListiclePage /> },
+          { path: '/dashboard/team', element: <div data-testid="team-page">Team Table View</div> },
+          { path: '/dashboard/team/edit/:userId', element: <EditUserPage /> },
+          { path: '/dashboard/posts/:postId', element: <PostDetailsPage /> },
           { path: '/dashboard', element: <div data-testid="home-page">Dashboard Home</div> },
         ],
       },
@@ -240,6 +245,52 @@ describe('Unsaved Changes Navigation Protection', () => {
       expect((screen.getByPlaceholderText(/In Lebanon You Have To Visit/i) as HTMLInputElement).value).toBe(
         'Top 5 Mountain Hikes'
       );
+    });
+  });
+
+  describe('Edit User Profile Page (EditUserPage)', () => {
+    it('intercepts navigation when user bio is modified', async () => {
+      renderWithRouter('/dashboard/team/edit/1');
+
+      const bioInput = screen.getByPlaceholderText('Tell us about this team member...');
+      fireEvent.change(bioInput, { target: { value: 'Updated bio information' } });
+
+      fireEvent.click(screen.getByText('Sidebar Home Link'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Unsaved Changes')).toBeDefined();
+      });
+    });
+
+    it('allows navigation when user profile changes are saved', async () => {
+      renderWithRouter('/dashboard/team/edit/1');
+
+      const nameInput = screen.getByDisplayValue('Anthony Rahayel');
+      fireEvent.change(nameInput, { target: { value: 'Anthony Rahayel Updated' } });
+
+      fireEvent.click(screen.getByRole('button', { name: /save changes/i }));
+
+      await waitFor(() => {
+        expect(screen.getByTestId('team-page')).toBeDefined();
+      });
+    });
+  });
+
+  describe('Post Details Quick Edit Mode (PostDetailsPage)', () => {
+    it('intercepts navigation when quick edit form is modified', async () => {
+      renderWithRouter('/dashboard/posts/lb-en-2');
+
+      // Click Edit Post button to toggle quick edit
+      fireEvent.click(screen.getByRole('button', { name: /edit post/i }));
+
+      const titleInput = screen.getByDisplayValue('10 Best Rooftop Bars in Beirut This Summer');
+      fireEvent.change(titleInput, { target: { value: 'Modified Post Title in Quick Edit' } });
+
+      fireEvent.click(screen.getByText('Sidebar Home Link'));
+
+      await waitFor(() => {
+        expect(screen.getByText('Unsaved Changes')).toBeDefined();
+      });
     });
   });
 
