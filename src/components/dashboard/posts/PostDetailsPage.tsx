@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { usePostContext } from './PostContext';
+import UnsavedChangesModal from '../../common/UnsavedChangesModal';
+import useUnsavedChangesProtection from '../../../hooks/useUnsavedChangesProtection';
 import { 
   ArrowLeft, 
   Eye, 
@@ -31,18 +33,47 @@ export default function PostDetailsPage() {
     shares: ''
   });
 
+  const [initialQuickForm, setInitialQuickForm] = useState<typeof quickForm | null>(null);
+  const isSavedRef = useRef(false);
+
   // Load state
-  React.useEffect(() => {
+  useEffect(() => {
     if (post) {
-      setQuickForm({
+      const initial = {
         title: post.title,
         category: post.category,
         status: post.status,
         views: post.views,
         shares: post.shares
-      });
+      };
+      setQuickForm(initial);
+      if (isEditingQuick && !initialQuickForm) {
+        setInitialQuickForm(initial);
+      }
     }
-  }, [post]);
+  }, [post, isEditingQuick, initialQuickForm]);
+
+  useEffect(() => {
+    if (isEditingQuick && post && !initialQuickForm) {
+      setInitialQuickForm({
+        title: quickForm.title || post.title,
+        category: quickForm.category || post.category,
+        status: quickForm.status || post.status,
+        views: quickForm.views || post.views,
+        shares: quickForm.shares || post.shares
+      });
+    } else if (!isEditingQuick) {
+      setInitialQuickForm(null);
+      isSavedRef.current = false;
+    }
+  }, [isEditingQuick, post, quickForm, initialQuickForm]);
+
+  const checkIsDirty = useCallback(() => {
+    if (!isEditingQuick || isSavedRef.current || !initialQuickForm) return false;
+    return JSON.stringify(quickForm) !== JSON.stringify(initialQuickForm);
+  }, [isEditingQuick, quickForm, initialQuickForm]);
+
+  const { showModal, handleConfirm, handleCancel } = useUnsavedChangesProtection(checkIsDirty);
 
   if (!post) {
     return (
@@ -62,6 +93,7 @@ export default function PostDetailsPage() {
 
   const handleQuickSave = (e: React.FormEvent) => {
     e.preventDefault();
+    isSavedRef.current = true;
     updatePost(post.id, {
       title: quickForm.title,
       category: quickForm.category,
@@ -404,6 +436,11 @@ export default function PostDetailsPage() {
 
       </div>
 
+      <UnsavedChangesModal
+        isOpen={showModal}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }

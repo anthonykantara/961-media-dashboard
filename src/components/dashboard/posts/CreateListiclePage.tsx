@@ -1,9 +1,11 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { usePostContext } from './PostContext';
 import { useTeamContext } from '../team/TeamContext';
 import AdBanner from '../../AdBanner';
 import SocialPreviewValidator from './SocialPreviewValidator';
+import UnsavedChangesModal from '../../common/UnsavedChangesModal';
+import useUnsavedChangesProtection from '../../../hooks/useUnsavedChangesProtection';
 import { 
   Image as ImageIcon, 
   Newspaper, 
@@ -135,6 +137,38 @@ export default function CreateListiclePage() {
       }
     ] as ListicleItem[]
   });
+
+  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
+  const isSavedRef = useRef(false);
+
+  useEffect(() => {
+    let initial = { ...formData };
+    if (location.state) {
+      const { title, category, image, keywords } = location.state as {
+        title?: string;
+        category?: string;
+        image?: string;
+        keywords?: string[];
+      };
+      initial = {
+        ...initial,
+        title: title || initial.title,
+        categories: category ? [category] : initial.categories,
+        image: image || initial.image,
+        keywords: keywords && keywords.length > 0 ? keywords : initial.keywords,
+      };
+    }
+    setInitialFormData(initial);
+  }, []);
+
+  const checkIsDirty = React.useCallback(() => {
+    if (isSavedRef.current || !initialFormData) return false;
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData]);
+
+  const isDirty = checkIsDirty();
+
+  const { showModal, handleConfirm, handleCancel } = useUnsavedChangesProtection(checkIsDirty);
 
   const introEditorRef = useRef<HTMLDivElement>(null);
 
@@ -364,6 +398,7 @@ export default function CreateListiclePage() {
       }
     }
 
+    isSavedRef.current = true;
     addPost({
       title: formData.title,
       category: formData.categories.join(', '),
@@ -1200,6 +1235,13 @@ export default function CreateListiclePage() {
           </div>
         </div>
       )}
+
+      {/* Unsaved Changes Confirmation Modal */}
+      <UnsavedChangesModal
+        isOpen={showModal}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
 
     </div>
   );

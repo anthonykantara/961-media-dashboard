@@ -24,7 +24,7 @@ import AIPromptsPage from './components/dashboard/AIPromptsPage';
 import LocationsPage from './components/dashboard/LocationsPage';
 import MessagesPage from './components/dashboard/MessagesPage';
 import AdRequestsPage from './components/dashboard/AdRequestsPage';
-import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 
 function LayoutWrapper() {
   return (
@@ -36,60 +36,60 @@ function LayoutWrapper() {
   );
 }
 
+const router = createBrowserRouter([
+  {
+    element: <LayoutWrapper />,
+    children: [
+      { path: '/', element: <DashboardHome /> },
+      { path: '/analytics', element: <AnalyticsPage /> },
+      { path: '/posts', element: <PostsPage /> },
+      { path: '/posts/create', element: <CreatePostPage /> },
+      { path: '/create/express', element: <CreateExpressPage /> },
+      { path: '/create/article', element: <CreatePostPage /> },
+      { path: '/create/listicle', element: <CreateListiclePage /> },
+      { path: '/posts/:postId', element: <PostDetailsPage /> },
+      { path: '/ideas', element: <IdeasPage /> },
+      { path: '/sections', element: <CategoriesPage /> },
+      { path: '/categories', element: <CategoriesPage /> },
+      { path: '/media', element: <MediaPage /> },
+      { path: '/pages', element: <PagesPage /> },
+      { path: '/team', element: <TeamPage /> },
+      { path: '/team/edit/:userId', element: <EditUserPage /> },
+      { path: '/messages', element: <MessagesPage /> },
+      { path: '/ads', element: <AdRequestsPage /> },
+      { path: '/ad-requests', element: <AdRequestsPage /> },
+      { path: '/ai', element: <AIPromptsPage /> },
+      { path: '/locations', element: <LocationsPage /> },
+
+      { path: '/dashboard', element: <DashboardHome /> },
+      { path: '/dashboard/analytics', element: <AnalyticsPage /> },
+      { path: '/dashboard/posts', element: <PostsPage /> },
+      { path: '/dashboard/posts/create', element: <CreatePostPage /> },
+      { path: '/dashboard/create/express', element: <CreateExpressPage /> },
+      { path: '/dashboard/create/article', element: <CreatePostPage /> },
+      { path: '/dashboard/create/listicle', element: <CreateListiclePage /> },
+      { path: '/dashboard/posts/:postId', element: <PostDetailsPage /> },
+      { path: '/dashboard/ideas', element: <IdeasPage /> },
+      { path: '/dashboard/sections', element: <CategoriesPage /> },
+      { path: '/dashboard/categories', element: <CategoriesPage /> },
+      { path: '/dashboard/media', element: <MediaPage /> },
+      { path: '/dashboard/pages', element: <PagesPage /> },
+      { path: '/dashboard/team', element: <TeamPage /> },
+      { path: '/dashboard/team/edit/:userId', element: <EditUserPage /> },
+      { path: '/dashboard/messages', element: <MessagesPage /> },
+      { path: '/dashboard/ads', element: <AdRequestsPage /> },
+      { path: '/dashboard/ad-requests', element: <AdRequestsPage /> },
+      { path: '/dashboard/ai', element: <AIPromptsPage /> },
+      { path: '/dashboard/locations', element: <LocationsPage /> },
+    ],
+  },
+]);
+
 export default function App() {
   return (
     <LocationProvider>
       <PostProvider>
-        <Router>
-          <Routes>
-            {/* All dashboard routes wrapped in the layout wrapper */}
-            <Route element={<LayoutWrapper />}>
-              {/* Flat Paths */}
-              <Route path="/" element={<DashboardHome />} />
-              <Route path="/analytics" element={<AnalyticsPage />} />
-              <Route path="/posts" element={<PostsPage />} />
-              <Route path="/posts/create" element={<CreatePostPage />} />
-              <Route path="/create/express" element={<CreateExpressPage />} />
-              <Route path="/create/article" element={<CreatePostPage />} />
-              <Route path="/create/listicle" element={<CreateListiclePage />} />
-              <Route path="/posts/:postId" element={<PostDetailsPage />} />
-              <Route path="/ideas" element={<IdeasPage />} />
-              <Route path="/sections" element={<CategoriesPage />} />
-              <Route path="/categories" element={<CategoriesPage />} />
-              <Route path="/media" element={<MediaPage />} />
-              <Route path="/pages" element={<PagesPage />} />
-              <Route path="/team" element={<TeamPage />} />
-              <Route path="/team/edit/:userId" element={<EditUserPage />} />
-              <Route path="/messages" element={<MessagesPage />} />
-              <Route path="/ads" element={<AdRequestsPage />} />
-              <Route path="/ad-requests" element={<AdRequestsPage />} />
-              <Route path="/ai" element={<AIPromptsPage />} />
-              <Route path="/locations" element={<LocationsPage />} />
-
-              {/* Prefixed Paths */}
-              <Route path="/dashboard" element={<DashboardHome />} />
-              <Route path="/dashboard/analytics" element={<AnalyticsPage />} />
-              <Route path="/dashboard/posts" element={<PostsPage />} />
-              <Route path="/dashboard/posts/create" element={<CreatePostPage />} />
-              <Route path="/dashboard/create/express" element={<CreateExpressPage />} />
-              <Route path="/dashboard/create/article" element={<CreatePostPage />} />
-              <Route path="/dashboard/create/listicle" element={<CreateListiclePage />} />
-              <Route path="/dashboard/posts/:postId" element={<PostDetailsPage />} />
-              <Route path="/dashboard/ideas" element={<IdeasPage />} />
-              <Route path="/dashboard/sections" element={<CategoriesPage />} />
-              <Route path="/dashboard/categories" element={<CategoriesPage />} />
-              <Route path="/dashboard/media" element={<MediaPage />} />
-              <Route path="/dashboard/pages" element={<PagesPage />} />
-              <Route path="/dashboard/team" element={<TeamPage />} />
-              <Route path="/dashboard/team/edit/:userId" element={<EditUserPage />} />
-              <Route path="/dashboard/messages" element={<MessagesPage />} />
-              <Route path="/dashboard/ads" element={<AdRequestsPage />} />
-              <Route path="/dashboard/ad-requests" element={<AdRequestsPage />} />
-              <Route path="/dashboard/ai" element={<AIPromptsPage />} />
-              <Route path="/dashboard/locations" element={<LocationsPage />} />
-            </Route>
-          </Routes>
-        </Router>
+        <RouterProvider router={router} />
       </PostProvider>
     </LocationProvider>
   );
