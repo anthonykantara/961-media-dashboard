@@ -4,6 +4,8 @@ import { usePostContext } from './PostContext';
 import { useTeamContext } from '../team/TeamContext';
 import UnsavedChangesModal from '../../common/UnsavedChangesModal';
 import useUnsavedChangesProtection from '../../../hooks/useUnsavedChangesProtection';
+import { useHtmlSanitizer } from '../../../hooks/useHtmlSanitizer';
+import { sanitizeHtml } from '../../../utils/sanitizeHtml';
 import { 
   Zap, 
   Sparkles, 
@@ -118,6 +120,14 @@ export default function CreateExpressPage() {
 
   // Rich ContentEditable Editor Ref
   const editorRef = useRef<HTMLDivElement | null>(null);
+
+  const { handlePaste: handleEditorPaste } = useHtmlSanitizer({
+    editorRef
+  });
+
+  const { handlePaste: handleSetupModalPaste } = useHtmlSanitizer({
+    onContentChange: (val) => setRawInputText(val)
+  });
 
   // Active Preview & Status State
   const [previewSlideId, setPreviewSlideId] = useState<number>(1);
@@ -285,7 +295,7 @@ export default function CreateExpressPage() {
     `;
 
     if (editorRef.current) {
-      editorRef.current.innerHTML = initialHtml;
+      editorRef.current.innerHTML = sanitizeHtml(initialHtml);
     }
 
     setSocialSummary(
@@ -323,7 +333,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
   // Sync editor content on initial render if already open
   useEffect(() => {
     if (editorRef.current && !editorRef.current.innerHTML) {
-      editorRef.current.innerHTML = `
+      const defaultHtml = `
         <p style="font-size: 15px; line-height: 1.7; color: #1F2937; margin-bottom: 16px;">
           When golden hour strikes across the Mediterranean, there is no better vantage point than Beirut's vibrant rooftops. From lush bohemian terraces in Mar Mikhael to sleek cocktail sanctuaries overlooking the port, the city's open-air scene continues to reinvent itself.
         </p>
@@ -336,6 +346,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
           <li><strong>Authentic Atmosphere:</strong> Intimate sunset acoustics that transition into dynamic weekend DJ sets.</li>
         </ul>
       `;
+      editorRef.current.innerHTML = sanitizeHtml(defaultHtml);
     }
   }, [isSetupModalOpen]);
 
@@ -596,7 +607,8 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
               <div
                 ref={editorRef}
                 contentEditable
-                className="min-h-[240px] outline-none text-sm text-gray-800 leading-relaxed font-sans focus:ring-0"
+                onPaste={handleEditorPaste}
+                className="min-h-[240px] outline-none text-sm text-gray-800 leading-relaxed font-sans focus:ring-0 [&_h3]:text-base [&_h3]:font-bold [&_h3]:mt-4 [&_h3]:mb-2 [&_blockquote]:border-l-4 [&_blockquote]:border-[#FF0000] [&_blockquote]:pl-4 [&_blockquote]:italic [&_ul]:list-disc [&_ul]:pl-5 [&_ol]:list-decimal [&_ol]:pl-5 [&_a]:text-[#FF0000] [&_a]:underline"
                 style={{ minHeight: '260px' }}
               />
             </div>
@@ -707,6 +719,10 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
                         rows={2}
                         value={slide.text}
                         onChange={(e) => handleSlideTextChange(slide.id, e.target.value)}
+                        onPaste={(e) => {
+                          handleSetupModalPaste(e);
+                          handleSlideTextChange(slide.id, e.currentTarget.value);
+                        }}
                         placeholder={`Enter text content for slide ${slide.id}...`}
                         className="w-full px-3.5 py-2.5 bg-white border border-gray-200 rounded-lg text-xs text-gray-900 focus:border-[#FF0000] outline-none transition-all resize-none leading-relaxed"
                       />
@@ -1116,6 +1132,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
                 rows={4}
                 value={rawInputText}
                 onChange={(e) => setRawInputText(e.target.value)}
+                onPaste={handleSetupModalPaste}
                 placeholder="Paste rough notes, a trending concept, or an outline (e.g. 7 secret rooftops in Beirut with cocktails and sunset views)..."
                 className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-2xl text-xs text-gray-800 focus:bg-white focus:border-[#FF0000] outline-none transition-all resize-none leading-relaxed"
               />

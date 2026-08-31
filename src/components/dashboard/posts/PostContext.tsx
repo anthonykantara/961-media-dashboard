@@ -18,12 +18,13 @@ export function PostProvider({ children }: { children: ReactNode }) {
   const [posts, setPosts] = useState<Post[]>(initialPosts);
 
   useEffect(() => {
+    let isMounted = true;
     const fetchPosts = async () => {
       try {
         const response = await fetch(`${API_BASE}/api/articles`);
-        if (response.ok) {
+        if (response.ok && isMounted) {
           const data = await response.json();
-          if (Array.isArray(data)) {
+          if (Array.isArray(data) && isMounted) {
             const normalized: Post[] = data.map((item: any) => ({
               id: String(item.id || item._id || Math.random().toString(36).substr(2, 9)),
               title: item.title || 'Untitled',
@@ -45,10 +46,11 @@ export function PostProvider({ children }: { children: ReactNode }) {
           }
         }
       } catch (error) {
-        console.error('Error fetching articles from backend:', error);
+        // Backend API offline fallback to mockData
       }
     };
     fetchPosts();
+    return () => { isMounted = false; };
   }, []);
 
   const addPost = (newPostData: Omit<Post, 'id' | 'views' | 'shares' | 'date' | 'time'> & { date?: string; time?: string }) => {
