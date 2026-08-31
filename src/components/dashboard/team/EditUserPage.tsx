@@ -1,7 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTeamContext } from './TeamContext';
 import { ArrowLeft, Save, User, Mail, Link as LinkIcon, FileText } from 'lucide-react';
+import UnsavedChangesModal from '../../common/UnsavedChangesModal';
+import useUnsavedChangesProtection from '../../../hooks/useUnsavedChangesProtection';
 
 export default function EditUserPage() {
   const { userId } = useParams();
@@ -19,18 +21,30 @@ export default function EditUserPage() {
     avatar: ''
   });
 
+  const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
+  const isSavedRef = useRef(false);
+
   useEffect(() => {
-    if (member) {
-      setFormData({
+    if (member && !initialFormData) {
+      const initial = {
         name: member.name,
         username: member.username,
         role: member.role,
         bio: member.bio || '',
         socialLink: member.socialLink || '',
         avatar: member.avatar
-      });
+      };
+      setFormData(initial);
+      setInitialFormData(initial);
     }
-  }, [member]);
+  }, [member, initialFormData]);
+
+  const checkIsDirty = useCallback(() => {
+    if (isSavedRef.current || !initialFormData) return false;
+    return JSON.stringify(formData) !== JSON.stringify(initialFormData);
+  }, [formData, initialFormData]);
+
+  const { showModal, handleConfirm, handleCancel } = useUnsavedChangesProtection(checkIsDirty);
 
   if (!member) {
     return (
@@ -48,6 +62,7 @@ export default function EditUserPage() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    isSavedRef.current = true;
     updateMember(member.id, formData);
     navigate('/dashboard/team');
   };
@@ -180,6 +195,12 @@ export default function EditUserPage() {
           </div>
         </form>
       </div>
+
+      <UnsavedChangesModal
+        isOpen={showModal}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }

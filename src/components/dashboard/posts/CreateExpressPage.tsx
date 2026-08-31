@@ -1,7 +1,9 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePostContext } from './PostContext';
 import { useTeamContext } from '../team/TeamContext';
+import UnsavedChangesModal from '../../common/UnsavedChangesModal';
+import useUnsavedChangesProtection from '../../../hooks/useUnsavedChangesProtection';
 import { 
   Zap, 
   Sparkles, 
@@ -122,6 +124,61 @@ export default function CreateExpressPage() {
   const [isPublishing, setIsPublishing] = useState(false);
   const [isPublishedModalOpen, setIsPublishedModalOpen] = useState(false);
   const [publishedPostId, setPublishedPostId] = useState<string | null>(null);
+
+  const [initialExpressState, setInitialExpressState] = useState<any>(null);
+  const isSavedRef = useRef(false);
+
+  useEffect(() => {
+    if (!initialExpressState) {
+      setInitialExpressState({
+        rawInputText,
+        category,
+        selectedAuthors,
+        language,
+        status,
+        headline,
+        socialSummary,
+        instagramCaption,
+        slides,
+        mainCoverImage,
+      });
+    }
+  }, []);
+
+  const checkIsDirty = React.useCallback(() => {
+    if (isSavedRef.current || !initialExpressState) return false;
+    const currentEditorBody = editorRef.current ? editorRef.current.innerHTML : '';
+    const current = {
+      rawInputText,
+      category,
+      selectedAuthors,
+      language,
+      status,
+      headline,
+      socialSummary,
+      instagramCaption,
+      slides,
+      mainCoverImage,
+      editorBody: currentEditorBody,
+    };
+    return JSON.stringify(current) !== JSON.stringify(initialExpressState);
+  }, [
+    rawInputText,
+    category,
+    selectedAuthors,
+    language,
+    status,
+    headline,
+    socialSummary,
+    instagramCaption,
+    slides,
+    mainCoverImage,
+    initialExpressState,
+  ]);
+
+  const isDirty = checkIsDirty();
+
+  const { showModal, handleConfirm, handleCancel } = useUnsavedChangesProtection(checkIsDirty);
 
   // Auto detect category from raw text
   const detectCategoryFromText = (text: string): string => {
@@ -334,6 +391,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
   );
 
   const handlePublish = () => {
+    isSavedRef.current = true;
     setIsPublishing(true);
     setTimeout(() => {
       const newPost = addPost({
@@ -1297,6 +1355,12 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
           </div>
         </div>
       )}
+      {/* Unsaved Changes Confirmation Modal */}
+      <UnsavedChangesModal
+        isOpen={showModal}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 }
