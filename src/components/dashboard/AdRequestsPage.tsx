@@ -65,7 +65,7 @@ const INITIAL_OPPORTUNITIES: OpportunityItem[] = [
   {
     id: 'cmp_sa_tier5',
     name: 'Riyadh Seasons Gulf Regional Campaign',
-    objective: 'Brand Awareness & Event RSVPs',
+    objective: 'Brand Awareness & Regional Reach',
     countryId: 'sa',
     status: 'active',
     totalAmount: 18500,
@@ -142,8 +142,8 @@ const INITIAL_OPPORTUNITIES: OpportunityItem[] = [
     createdAt: new Date(Date.now() - 3600000 * 12).toISOString(),
     advertiser: {
       id: 'adv_ae_1',
-      companyName: 'Dubai Fintech Week Events Ltd',
-      companySlug: 'dubai-fintech-week-events-ltd',
+      companyName: 'Dubai Fintech Week Ltd',
+      companySlug: 'dubai-fintech-week-ltd',
       brandName: 'Dubai Fintech Week',
       website: 'https://dubaifintech.ae',
       industry: 'Fintech & Tech'
@@ -342,7 +342,7 @@ export default function AdRequestsPage() {
 
   const formatProductName = (productId: string) => {
     const map: Record<string, string> = {
-      prod_featured_article: 'Featured Sponsored Article',
+      prod_featured_article: 'Featured Article Package',
       prod_social_video: 'Social Video Feature',
       prod_display_banner: 'Display Banner Placement',
       prod_newsletter_feature: 'Newsletter Sponsorship Feature',
