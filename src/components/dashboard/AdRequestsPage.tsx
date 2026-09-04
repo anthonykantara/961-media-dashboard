@@ -349,7 +349,7 @@ export default function AdRequestsPage() {
       if (selectedOpp && selectedOpp.id === opp.id) {
         setSelectedOpp(prev => prev ? { ...prev, slackChannel: channelName } : null);
       }
-    } flex: {
+    } finally {
       setCreatingChannelId(null);
     }
   };
