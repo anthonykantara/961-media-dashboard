@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   MapPin, 
   Search, 
@@ -38,6 +38,19 @@ export const CampaignIntakeForm: React.FC<CampaignIntakeFormProps> = ({
 }) => {
   const [venueQuery, setVenueQuery] = useState('');
   const [showVenueDropdown, setShowVenueDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowVenueDropdown(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const hasEventProduct = selectedProducts.includes('prod_event_package');
   const hasInCarouselProduct = selectedProducts.includes('prod_in_carousel_ig');
@@ -45,16 +58,11 @@ export const CampaignIntakeForm: React.FC<CampaignIntakeFormProps> = ({
 
   // Handle Handle Tag input change (Only 1 tag permitted, formatted as @brand)
   const formatSingleHandleTag = (val: string): string => {
-    let clean = val.trim().replace(/\s+/g, '');
-    if (clean && !clean.startsWith('@')) {
-      clean = '@' + clean;
-    }
-    // ensure only 1 tag by taking the first tag if multiple @ are typed or pasted
-    const parts = clean.split('@').filter(Boolean);
-    if (parts.length > 0) {
-      return '@' + parts[0];
-    }
-    return clean;
+    if (!val) return '';
+    const firstToken = val.trim().split(/[\s,;]+/)[0] || '';
+    const cleanTag = firstToken.replace(/[^a-zA-Z0-9_.]/g, '');
+    if (!cleanTag) return '';
+    return `@${cleanTag}`;
   };
 
   const handleInstagramTagChange = (field: 'eventInstagramTag' | 'carouselInstagramTag', rawVal: string) => {
@@ -93,6 +101,21 @@ export const CampaignIntakeForm: React.FC<CampaignIntakeFormProps> = ({
     });
   };
 
+  // Estimate coordinates based on known regions in Lebanon
+  const estimateCoordinates = (query: string): { lat: number; lng: number } => {
+    const q = query.toLowerCase();
+    if (q.includes('byblos') || q.includes('jbeil')) return { lat: 34.1214, lng: 35.6461 };
+    if (q.includes('batroun')) return { lat: 34.2556, lng: 35.6583 };
+    if (q.includes('tripoli') || q.includes('trablous')) return { lat: 34.4367, lng: 35.8286 };
+    if (q.includes('jounieh') || q.includes('kaslik') || q.includes('dbayeh') || q.includes('zouk')) return { lat: 33.9856, lng: 35.6178 };
+    if (q.includes('faraya') || q.includes('kfardebian') || q.includes('mzaar')) return { lat: 33.9986, lng: 35.8361 };
+    if (q.includes('tyre') || q.includes('soor')) return { lat: 33.2667, lng: 35.2078 };
+    if (q.includes('saida') || q.includes('sidon')) return { lat: 33.5600, lng: 35.3700 };
+    if (q.includes('chouf') || q.includes('beiteddine')) return { lat: 33.6939, lng: 35.5794 };
+    if (q.includes('zahle')) return { lat: 33.8400, lng: 35.9000 };
+    return { lat: 33.8969, lng: 35.5017 };
+  };
+
   // Venue Selection
   const handleSelectVenue = (venue: typeof PRESET_VENUES[0]) => {
     const dist = calculateDistanceKm(venue.lat, venue.lng);
@@ -113,16 +136,19 @@ export const CampaignIntakeForm: React.FC<CampaignIntakeFormProps> = ({
     });
   };
 
-  const handleCustomVenueSelect = (name: string, lat: number, lng: number) => {
-    const dist = calculateDistanceKm(lat, lng);
+  const handleCustomVenueSelect = (name: string) => {
+    const coords = estimateCoordinates(name);
+    const dist = calculateDistanceKm(coords.lat, coords.lng);
     const surcharge = calculateDistanceSurcharge(dist);
     const venueLoc: VenueLocation = {
       name,
-      lat,
-      lng,
+      lat: coords.lat,
+      lng: coords.lng,
       distanceKm: dist,
       surchargeAmount: surcharge
     };
+    setVenueQuery(name);
+    setShowVenueDropdown(false);
     onChangeSpecs({
       ...specs,
       venueLocation: venueLoc
@@ -239,7 +265,7 @@ export const CampaignIntakeForm: React.FC<CampaignIntakeFormProps> = ({
           </div>
 
           {/* Venue Location Search & Google Maps distance calculation */}
-          <div className="space-y-2 pt-2">
+          <div className="space-y-2 pt-2" ref={dropdownRef}>
             <label className="block text-xs font-semibold text-gray-700">
               Venue Location Search & Google Maps Distance Calculation
             </label>
@@ -262,37 +288,34 @@ export const CampaignIntakeForm: React.FC<CampaignIntakeFormProps> = ({
               {/* Venue Dropdown */}
               {showVenueDropdown && (
                 <div className="absolute left-0 right-0 top-full mt-1 bg-white border border-gray-200 rounded-xl shadow-lg z-30 max-h-48 overflow-y-auto divide-y divide-gray-100">
-                  {filteredVenues.length === 0 ? (
-                    <div className="p-3 text-xs text-gray-400">
-                      No matching venue. Click below to use typed location:
-                      <button
-                        type="button"
-                        onClick={() => {
-                          handleCustomVenueSelect(venueQuery || 'Custom Venue', 33.8969, 35.5017);
-                          setShowVenueDropdown(false);
-                        }}
-                        className="block mt-1 font-semibold text-primary hover:underline"
-                      >
-                        Set "{venueQuery}" (Beirut Zone - $0)
-                      </button>
-                    </div>
-                  ) : (
-                    filteredVenues.map((venue, idx) => (
-                      <button
-                        key={idx}
-                        type="button"
-                        onClick={() => handleSelectVenue(venue)}
-                        className="w-full text-left p-2.5 hover:bg-gray-50 flex items-center justify-between transition-colors cursor-pointer"
-                      >
-                        <div>
-                          <span className="font-semibold text-xs text-gray-900 block">{venue.name}</span>
-                          <span className="text-[10px] text-gray-500">{venue.address}</span>
-                        </div>
-                        <span className="text-[10px] text-gray-400 font-mono">
-                          {calculateDistanceKm(venue.lat, venue.lng)}km from Beirut
-                        </span>
-                      </button>
-                    ))
+                  {filteredVenues.map((venue, idx) => (
+                    <button
+                      key={idx}
+                      type="button"
+                      onClick={() => handleSelectVenue(venue)}
+                      className="w-full text-left p-2.5 hover:bg-gray-50 flex items-center justify-between transition-colors cursor-pointer"
+                    >
+                      <div>
+                        <span className="font-semibold text-xs text-gray-900 block">{venue.name}</span>
+                        <span className="text-[10px] text-gray-500">{venue.address}</span>
+                      </div>
+                      <span className="text-[10px] text-gray-400 font-mono">
+                        {calculateDistanceKm(venue.lat, venue.lng)}km from Beirut
+                      </span>
+                    </button>
+                  ))}
+
+                  {venueQuery.trim() && !PRESET_VENUES.some(v => v.name.toLowerCase() === venueQuery.trim().toLowerCase()) && (
+                    <button
+                      type="button"
+                      onClick={() => handleCustomVenueSelect(venueQuery.trim())}
+                      className="w-full text-left p-2.5 bg-gray-50 hover:bg-gray-100 font-semibold text-xs text-primary transition-colors cursor-pointer flex items-center justify-between"
+                    >
+                      <span>Set custom venue "{venueQuery.trim()}"</span>
+                      <span className="text-[10px] text-gray-500 font-normal">
+                        ({calculateDistanceKm(estimateCoordinates(venueQuery).lat, estimateCoordinates(venueQuery).lng)}km from Beirut)
+                      </span>
+                    </button>
                   )}
                 </div>
               )}

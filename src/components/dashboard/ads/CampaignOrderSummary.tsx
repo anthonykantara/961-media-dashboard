@@ -57,9 +57,9 @@ export const CampaignOrderSummary: React.FC<CampaignOrderSummaryProps> = ({
   const availableCampaignAddons = ADDON_CATALOG.filter(a => a.parentProductId === 'campaign_wide' && !items.some(i => i.addonId === a.id));
 
   // Helper text for add-ons
-  const getAddonBadgeText = (item: CampaignOrderItem) => {
+  const getAddonBadgeText = (item: CampaignOrderItem, parentQty: number = 1) => {
     if (item.addonId === 'addon_additional_100k_impressions') {
-      return `${(1 + item.quantity) * 100}k impressions guaranteed`;
+      return `${(parentQty + item.quantity) * 100}k impressions guaranteed`;
     }
     if (item.addonId === 'addon_event_highlight_7d') {
       return `${item.quantity * 7} Days duration`;
@@ -181,7 +181,7 @@ export const CampaignOrderSummary: React.FC<CampaignOrderSummaryProps> = ({
                     {/* Grouped and Indented Bound Add-ons */}
                     {boundAddons.map((addonItem) => {
                       const catalogAddon = ADDON_CATALOG.find(a => a.id === addonItem.addonId);
-                      const badgeText = getAddonBadgeText(addonItem);
+                      const badgeText = getAddonBadgeText(addonItem, prodItem.quantity);
 
                       return (
                         <tr key={addonItem.id} className="bg-white hover:bg-gray-50/60 transition-colors">
