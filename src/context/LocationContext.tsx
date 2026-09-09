@@ -1,4 +1,5 @@
 import React,{createContext,useContext,useEffect,useMemo,useState,ReactNode}from'react';import{LocationTerritory,SupportedLanguage,SUPPORTED_LANGUAGES}from'../types/location';
+export const GLOBAL_SUPPORTED_LANGUAGES = ['en', 'ar', 'fr', 'sk'];
 const API_BASE=(import.meta.env.VITE_API_URL||'').replace(/\/$/,'');
 async function request(path:string,options:RequestInit={}){const r=await fetch(`${API_BASE}${path}`,{...options,credentials:'include'});const body=await r.json().catch(()=>null);if(!r.ok)throw new Error(body?.error||body?.message||`Request failed (${r.status})`);return body;}
 function mapLocation(row:any):LocationTerritory{return{id:String(row.id),name:String(row.name||row.id),slug:String(row.id).toLowerCase(),level:'country',countryCode:String(row.countryCode||''),flagEmoji:'',isHub:false,status:row.enabled===false?'draft':'active',supportedLanguages:Array.isArray(row.supportedLanguages)&&row.supportedLanguages.length?row.supportedLanguages:['en'],defaultLanguage:String(row.defaultLanguage||'en')}}
