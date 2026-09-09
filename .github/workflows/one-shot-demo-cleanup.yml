@@ -1,0 +1,100 @@
+name: One-shot demo cleanup
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  cleanup:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Remove remaining demo defaults
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+
+          files = [
+              Path('src/components/dashboard/posts/CreatePostPage.tsx'),
+              Path('src/components/dashboard/posts/CreateListiclePage.tsx'),
+              Path('src/components/dashboard/posts/CreateExpressPage.tsx'),
+          ]
+
+          def replace_array(text, marker, replacement):
+              start = text.find(marker)
+              if start < 0:
+                  return text
+              bracket = text.find('[', start)
+              if bracket < 0:
+                  return text
+              depth = 0
+              quote = None
+              escape = False
+              for i in range(bracket, len(text)):
+                  c = text[i]
+                  if quote:
+                      if escape:
+                          escape = False
+                      elif c == '\\':
+                          escape = True
+                      elif c == quote:
+                          quote = None
+                      continue
+                  if c in "'\"`":
+                      quote = c
+                  elif c == '[':
+                      depth += 1
+                  elif c == ']':
+                      depth -= 1
+                      if depth == 0:
+                          return text[:bracket] + replacement + text[i + 1:]
+              return text
+
+          for path in files:
+              text = path.read_text()
+
+              text = text.replace("selectedAuthors: ['Anthony Rahayel'] as string[]", "selectedAuthors: [] as string[]")
+              text = text.replace("selectedAuthors: ['Anthony Rahayel']", "selectedAuthors: []")
+              text = text.replace("keywords: ['Beirut', 'Lebanon'] as string[]", "keywords: [] as string[]")
+              text = text.replace("keywords: ['Beirut', 'Lebanon', 'List'] as string[],", "keywords: [] as string[],")
+              text = re.sub(r"image: 'https://images\\.unsplash\\.com/[^']*'", "image: ''", text, count=1)
+
+              if path.name == 'CreatePostPage.tsx':
+                  text = text.replace("const [mediaTab, setMediaTab] = useState<'presets' | 'upload'>('presets');", "const [mediaTab, setMediaTab] = useState<'presets' | 'upload'>('upload');")
+                  text = replace_array(text, 'const verticalPresets =', '[]')
+                  text = replace_array(text, 'const ECOSYSTEM_ITEMS =', '[]')
+
+              if path.name == 'CreateListiclePage.tsx':
+                  text = text.replace("const [coverTab, setCoverTab] = useState<'presets' | 'upload'>('presets');", "const [coverTab, setCoverTab] = useState<'presets' | 'upload'>('upload');")
+                  text = replace_array(text, 'const verticalPresets =', '[]')
+                  text = replace_array(text, 'const ECOSYSTEM_ITEMS =', '[]')
+                  text = replace_array(text, 'items: [', "[{ id: 'item-1', title: '', visual: '', visualType: 'image' as 'image' | '961', text: '' }]")
+
+              if path.name == 'CreateExpressPage.tsx':
+                  text = replace_array(text, 'const PRESET_IMAGES =', '[]')
+                  text = re.sub(r"const \[rawInputText, setRawInputText\] = useState\(\s*`.*?`\s*\);", "const [rawInputText, setRawInputText] = useState('');", text, flags=re.S)
+                  text = text.replace("const [selectedAuthors, setSelectedAuthors] = useState<string[]>(['Anthony Rahayel']);", "const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);")
+                  text = text.replace("const [status, setStatus] = useState<'Published' | 'Draft' | 'Scheduled' | 'Review'>('Published');", "const [status, setStatus] = useState<'Published' | 'Draft' | 'Scheduled' | 'Review'>('Draft');")
+                  text = re.sub(r"const \[headline, setHeadline\] = useState\('7 \[Secret Rooftops in Beirut\] That Locals Keep to Themselves'\);", "const [headline, setHeadline] = useState('');", text)
+                  text = replace_array(text, 'const [slides, setSlides] = useState<SlideData[]>([', '[]')
+                  text = text.replace("const [mainCoverImage, setMainCoverImage] = useState<string | null>(PRESET_IMAGES[0].url);", "const [mainCoverImage, setMainCoverImage] = useState<string | null>(null);")
+
+              path.write_text(text)
+
+          subprocess = __import__('subprocess')
+          subprocess.run(['git', 'config', 'user.name', 'github-actions[bot]'], check=True)
+          subprocess.run(['git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'], check=True)
+          subprocess.run(['git', 'add', *map(str, files)], check=True)
+          changed = subprocess.run(['git', 'diff', '--cached', '--quiet'])
+          if changed.returncode == 0:
+              print('No source changes required.')
+              raise SystemExit(0)
+          subprocess.run(['git', 'commit', '-m', 'chore: clear remaining article demo defaults'], check=True)
+          subprocess.run(['git', 'push'], check=True)
