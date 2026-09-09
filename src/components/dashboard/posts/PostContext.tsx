@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useEffect, useState, ReactNode } from 'react';
 import { Post } from './types';
-const API_BASE = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+const API_BASE = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : 'https://api.961.co')).replace(/\/$/, '');
 const request = async (path:string, options:RequestInit={}) => { const r=await fetch(`${API_BASE}${path}`,{...options,credentials:'include'}); const body=await r.json().catch(()=>({})); if(!r.ok) throw new Error(body.message||body.error||`Request failed (${r.status})`); return body; };
 interface PostContextType { posts:Post[]; addPost:(post:Omit<Post,'id'|'views'|'shares'|'date'|'time'>&{date?:string;time?:string})=>Promise<Post>; deletePost:(id:string)=>Promise<void>; updatePost:(id:string,updates:Partial<Post>)=>Promise<void>; getPost:(id:string)=>Post|undefined; loading:boolean; error:string|null; }
 const PostContext=createContext<PostContextType|undefined>(undefined);
