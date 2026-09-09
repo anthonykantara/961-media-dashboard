@@ -2,13 +2,9 @@ import { FolderPlus, Upload, CheckCircle2, FolderInput, Image as ImageIcon, X } 
 import { useState, useRef, FormEvent, ChangeEvent } from 'react';
 import { MediaItem, MediaType } from './types';
 import { Modal } from '../../common/Modal';
+import { requireAuthToken } from '../../../utils/auth';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
-
-function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 interface NewFolderModalProps {
   isOpen: boolean;
@@ -86,9 +82,18 @@ export function UploadModal({ isOpen, onClose, currentFolderId, onAddItem }: Upl
     setIsUploading(true);
     setUploadProgress(0);
 
+    let token: string;
+    try {
+      token = requireAuthToken();
+    } catch (authError) {
+      setIsUploading(false);
+      setError(authError instanceof Error ? authError.message : 'Authentication is required to upload media.');
+      return;
+    }
+
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE}/api/media/upload`);
-    Object.entries(authHeaders()).forEach(([key, value]) => xhr.setRequestHeader(key, value));
+    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
     xhr.responseType = 'json';
 
     xhr.upload.onprogress = (event) => {
