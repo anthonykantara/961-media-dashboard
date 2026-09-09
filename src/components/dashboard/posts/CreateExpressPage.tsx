@@ -97,12 +97,7 @@ export default function CreateExpressPage() {
   const [instagramCaption, setInstagramCaption] = useState('');
   
   // Carousel Slide Snippets (4 slides) - First slide has same text as headline
-  const [] = useState<SlideData[]>([
-    { id: 1, text: '7 [Secret Rooftops in Beirut] That Locals Keep to Themselves', customImage: null },
-    { id: 2, text: 'Order the signature [Pomegranate Gin Fizz] while soaking in sunset views.', customImage: null },
-    { id: 3, text: 'Secret terrace access hidden behind [Historic Heritage Buildings] in Mar Mikhael.', customImage: null },
-    { id: 4, text: 'Save this guide and tag your [Weekend Squad] in the comments below!', customImage: null }
-  ]);
+  const [slides, setSlides] = useState<SlideData[]>([]);
 
   // Media state
   const [mainCoverImage, setMainCoverImage] = useState<string | null>(null);
