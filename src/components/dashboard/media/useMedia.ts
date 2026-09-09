@@ -1,13 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { MediaItem, MediaType, SortOption } from './types';
 import { useDataTable } from '../../../hooks/useDataTable';
+import { authHeaders } from '../../../utils/auth';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
-
-function authHeaders(): Record<string, string> {
-  const token = localStorage.getItem('authToken') || localStorage.getItem('token');
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
 
 export function useMedia(initialData: MediaItem[]) {
   const [media, setMedia] = useState<MediaItem[]>(initialData);
