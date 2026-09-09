@@ -1,9 +1,9 @@
 import { useState, useMemo, useEffect } from 'react';
 import { MediaItem, MediaType, SortOption } from './types';
 import { useDataTable } from '../../../hooks/useDataTable';
-import { authHeaders } from '../../../utils/auth';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
+const fetchOptions: RequestInit = { credentials: 'include' };
 
 export function useMedia(initialData: MediaItem[]) {
   const [media, setMedia] = useState<MediaItem[]>(initialData);
@@ -16,7 +16,7 @@ export function useMedia(initialData: MediaItem[]) {
 
   useEffect(() => {
     let mounted = true;
-    fetch(`${API_BASE}/api/media`, { headers: authHeaders() })
+    fetch(`${API_BASE}/api/media`, fetchOptions)
       .then(async response => {
         if (!response.ok) throw new Error(`Media API returned ${response.status}`);
         const data = await response.json();
@@ -110,7 +110,7 @@ export function useMedia(initialData: MediaItem[]) {
   const deleteItem = (id: string) => {
     setMedia(prev => prev.filter(item => item.id !== id));
     setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
-    fetch(`${API_BASE}/api/media/${id}`, { method: 'DELETE', headers: authHeaders() })
+    fetch(`${API_BASE}/api/media/${id}`, { method: 'DELETE', ...fetchOptions })
       .catch(error => console.error('Error deleting media item:', error));
   };
 
@@ -118,7 +118,8 @@ export function useMedia(initialData: MediaItem[]) {
     setMedia(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
     fetch(`${API_BASE}/api/media/${id}`, {
       method: 'PATCH',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(updates),
     }).catch(error => console.error('Error updating media item:', error));
   };
@@ -129,7 +130,8 @@ export function useMedia(initialData: MediaItem[]) {
     try {
       const response = await fetch(`${API_BASE}/api/media/folders`, {
         method: 'POST',
-        headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, parentId: currentFolderId, folderColor: color || '#FF0000' }),
       });
       if (!response.ok) throw new Error(`Folder API returned ${response.status}`);
@@ -143,7 +145,7 @@ export function useMedia(initialData: MediaItem[]) {
     const ids = [...selectedIds];
     setMedia(prev => prev.filter(item => !ids.includes(item.id)));
     setSelectedIds([]);
-    Promise.all(ids.map(id => fetch(`${API_BASE}/api/media/${id}`, { method: 'DELETE', headers: authHeaders() })))
+    Promise.all(ids.map(id => fetch(`${API_BASE}/api/media/${id}`, { method: 'DELETE', ...fetchOptions })))
       .catch(error => console.error('Error deleting media items:', error));
   };
 
@@ -153,7 +155,8 @@ export function useMedia(initialData: MediaItem[]) {
     setSelectedIds([]);
     Promise.all(ids.map(id => fetch(`${API_BASE}/api/media/${id}`, {
       method: 'PATCH',
-      headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ parentId: targetFolderId }),
     }))).catch(error => console.error('Error moving media items:', error));
   };
