@@ -1,2 +1,189 @@
-import React,{useEffect,useState}from'react';import{Mail,Search,Star,Trash2}from'lucide-react';
-const API=(import.meta.env.VITE_API_URL||'').replace(/\/$/,'');export default function MessagesPage(){const[messages,setMessages]=useState<any[]>([]);const[selected,setSelected]=useState<string|null>(null);const[filter,setFilter]=useState('all');const[search,setSearch]=useState('');const[loading,setLoading]=useState(true);const load=()=>{setLoading(true);fetch(`${API}/api/admin/messages?filter=${filter}&search=${encodeURIComponent(search)}`,{credentials:'include'}).then(r=>r.ok?r.json():[]).then(rows=>{setMessages(rows);if(rows[0])setSelected(rows[0].id)}).finally(()=>setLoading(false))};useEffect(()=>{const t=setTimeout(load,200);return()=>clearTimeout(t)},[filter,search]);const current=messages.find(m=>m.id===selected);const patch=async(id:string,u:any)=>{await fetch(`${API}/api/admin/messages/${id}`,{method:'PATCH',credentials:'include',headers:{'Content-Type':'application/json'},body:JSON.stringify(u)});load()};const remove=async(id:string)=>{await fetch(`${API}/api/admin/messages/${id}`,{method:'DELETE',credentials:'include'});setSelected(null);load()};return <div className="space-y-6"><div className="flex items-center justify-between"><div><h1 className="text-2xl font-bold">Messages</h1><p className="text-xs text-gray-500 mt-1">Reader and contact submissions stored by the CMS.</p></div><div className="flex gap-2">{['all','unread','starred'].map(x=><button key={x} onClick={()=>setFilter(x)} className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${filter===x?'bg-gray-900 text-white':'bg-gray-100 text-gray-600'}`}>{x}</button>)}</div></div><div className="bg-white border border-gray-200 rounded-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[620px]"><div className="lg:col-span-5 border-r border-gray-200"><div className="p-3 border-b border-gray-100"><div className="relative"><Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"/><input value={search} onChange={e=>setSearch(e.target.value)} placeholder="Search messages..." className="w-full pl-9 pr-3 py-2 bg-gray-50 rounded-xl text-xs"/></div></div>{loading?<div className="p-8 text-center text-sm text-gray-400">Loading...</div>:messages.length?<div className="divide-y divide-gray-100">{messages.map(m=><div key={m.id} onClick={()=>patch(m.id,{unread:false}).then(()=>setSelected(m.id))} className={`p-4 cursor-pointer ${selected===m.id?'bg-red-50/40':''}`}><div className="flex justify-between"><span className={`text-xs ${m.unread?'font-bold':'font-medium'}`}>{m.sender}</span><button onClick={e=>{e.stopPropagation();patch(m.id,{starred:!m.starred})}}><Star className={`w-3.5 h-3.5 ${m.starred?'fill-current':''}`}/></button></div><div className="text-xs font-semibold mt-1 truncate">{m.subject}</div><div className="text-[11px] text-gray-500 mt-1 line-clamp-1">{m.snippet}</div></div>)}</div>:<div className="p-12 text-center text-sm text-gray-400">No messages.</div>}</div><div className="lg:col-span-7 bg-gray-50/30">{current?<div className="h-full flex flex-col"><div className="p-6 bg-white border-b border-gray-200 flex justify-between"><div><h2 className="font-bold">{current.subject}</h2><p className="text-xs text-gray-500 mt-1">{current.sender} &lt;{current.email}&gt;</p></div><button onClick={()=>remove(current.id)} className="p-2 text-gray-400 hover:text-red-600"><Trash2 className="w-4 h-4"/></button></div><div className="p-6 flex-1 overflow-auto"><div className="bg-white p-5 rounded-xl border border-gray-100 text-sm whitespace-pre-line">{current.body}</div></div></div>:<div className="h-full flex items-center justify-center text-sm text-gray-400"><Mail className="w-6 h-6 mr-2"/>No message selected</div>}</div></div></div>}
+import React, { useEffect, useState } from 'react';
+import { Mail, Search, Star, Trash2 } from 'lucide-react';
+
+const API = (import.meta.env.VITE_API_URL || '').replace(/\/$/, '');
+
+const INITIAL_MESSAGES = [
+  {
+    id: 'msg-1',
+    sender: 'Sami Haddad',
+    email: 'sami.h@outlook.com',
+    subject: 'Story lead: New tech hub launching in Downtown Beirut',
+    snippet: 'Hey 961 team, I wanted to share an exclusive update on a new regional incubator...',
+    body: 'Hey 961 team,\n\nI wanted to share an exclusive update on a new regional incubator set to open next month in Downtown Beirut with $10M in seed funding. We would love to offer The961 first interview rights.\n\nLet me know if you would like me to connect you with the founding partners.\n\nBest regards,\nSami Haddad',
+    date: '10:42 AM',
+    unread: true,
+    starred: true,
+    category: 'Editorial',
+  },
+  {
+    id: 'msg-2',
+    sender: 'Elena Rostova',
+    email: 'elena@bratislava-media.sk',
+    subject: 'Slovakia edition collaboration & cross-publishing',
+    snippet: 'Greetings from Bratislava! We love the new Slovakia section on The961...',
+    body: 'Greetings from Bratislava!\n\nWe love the new Slovakia section on The961. We are a local cultural magazine and would love to discuss syndicate content or cross-publishing stories between Lebanon and Central Europe.\n\nLooking forward to hearing back,\nElena',
+    date: 'Yesterday',
+    unread: true,
+    starred: false,
+    category: 'Partnership',
+  },
+  {
+    id: 'msg-3',
+    sender: 'Nour El-Khoury',
+    email: 'nour.k@gmail.com',
+    subject: 'Feedback on recent restaurant guide',
+    snippet: 'Really enjoyed the latest Mar Mikhael dining recommendations listicle...',
+    body: 'Hi editors,\n\nReally enjoyed the latest Mar Mikhael dining recommendations listicle! Wanted to suggest adding the new bakery that opened on Armenia street last week.\n\nKeep up the great work!',
+    date: 'Aug 13',
+    unread: false,
+    starred: false,
+    category: 'General',
+  },
+  {
+    id: 'msg-4',
+    sender: 'Karim Mansour',
+    email: 'press@cedarsfilmfest.org',
+    subject: 'Press Release: Cedars Film Festival 2026 Official Selection',
+    snippet: 'Official media kit and press pass registration for verified journalists...',
+    body: 'Dear The961 Editorial Desk,\n\nPlease find attached the official press kit and media credential application for the upcoming Cedars Film Festival 2026.\n\nPress passes are limited and priority is given to accredited publications.\n\nSincerely,\nKarim Mansour',
+    date: 'Aug 11',
+    unread: false,
+    starred: true,
+    category: 'Press',
+  },
+];
+
+export default function MessagesPage() {
+  const [messages, setMessages] = useState<any[]>(INITIAL_MESSAGES);
+  const [selected, setSelected] = useState<string | null>('msg-1');
+  const [filter, setFilter] = useState('all');
+  const [search, setSearch] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const load = () => {
+    fetch(`${API}/api/admin/messages?filter=${filter}&search=${encodeURIComponent(search)}`, { credentials: 'include' })
+      .then(r => r.ok ? r.json() : null)
+      .then(rows => {
+        if (Array.isArray(rows) && rows.length > 0) {
+          setMessages(rows);
+          if (rows[0]) setSelected(rows[0].id);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    const t = setTimeout(load, 200);
+    return () => clearTimeout(t);
+  }, [filter, search]);
+
+  const current = messages.find(m => m.id === selected);
+
+  const patch = async (id: string, u: any) => {
+    await fetch(`${API}/api/admin/messages/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(u)
+    }).catch(() => {});
+    load();
+  };
+
+  const remove = async (id: string) => {
+    await fetch(`${API}/api/admin/messages/${id}`, {
+      method: 'DELETE',
+      credentials: 'include'
+    }).catch(() => {});
+    setSelected(null);
+    load();
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold">Messages</h1>
+          <p className="text-xs text-gray-500 mt-1">Reader and contact submissions stored by the CMS.</p>
+        </div>
+        <div className="flex gap-2">
+          {['all', 'unread', 'starred'].map(x => (
+            <button
+              key={x}
+              onClick={() => setFilter(x)}
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold ${filter === x ? 'bg-gray-900 text-white' : 'bg-gray-100 text-gray-600'}`}
+            >
+              {x}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden grid grid-cols-1 lg:grid-cols-12 min-h-[620px]">
+        <div className="lg:col-span-5 border-r border-gray-200">
+          <div className="p-3 border-b border-gray-100">
+            <div className="relative">
+              <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+              <input
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                placeholder="Search messages..."
+                className="w-full pl-9 pr-3 py-2 bg-gray-50 rounded-xl text-xs"
+              />
+            </div>
+          </div>
+
+          {loading ? (
+            <div className="p-8 text-center text-sm text-gray-400">Loading...</div>
+          ) : messages.length ? (
+            <div className="divide-y divide-gray-100">
+              {messages.map(m => (
+                <div
+                  key={m.id}
+                  onClick={() => patch(m.id, { unread: false }).then(() => setSelected(m.id))}
+                  className={`p-4 cursor-pointer ${selected === m.id ? 'bg-red-50/40' : ''}`}
+                >
+                  <div className="flex justify-between">
+                    <span className={`text-xs ${m.unread ? 'font-bold' : 'font-medium'}`}>{m.sender}</span>
+                    <button onClick={e => { e.stopPropagation(); patch(m.id, { starred: !m.starred }); }}>
+                      <Star className={`w-3.5 h-3.5 ${m.starred ? 'fill-current' : ''}`} />
+                    </button>
+                  </div>
+                  <div className="text-xs font-semibold mt-1 truncate">{m.subject}</div>
+                  <div className="text-[11px] text-gray-500 mt-1 line-clamp-1">{m.snippet}</div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div className="p-12 text-center text-sm text-gray-400">No messages.</div>
+          )}
+        </div>
+
+        <div className="lg:col-span-7 bg-gray-50/30">
+          {current ? (
+            <div className="h-full flex flex-col">
+              <div className="p-6 bg-white border-b border-gray-200 flex justify-between">
+                <div>
+                  <h2 className="font-bold">{current.subject}</h2>
+                  <p className="text-xs text-gray-500 mt-1">{current.sender} &lt;{current.email}&gt;</p>
+                </div>
+                <button onClick={() => remove(current.id)} className="p-2 text-gray-400 hover:text-red-600">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+              <div className="p-6 flex-1 overflow-auto">
+                <div className="bg-white p-5 rounded-xl border border-gray-100 text-sm whitespace-pre-line">{current.body}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="h-full flex items-center justify-center text-sm text-gray-400">
+              <Mail className="w-6 h-6 mr-2" />
+              No message selected
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
