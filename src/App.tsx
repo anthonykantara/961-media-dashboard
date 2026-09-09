@@ -1,8 +1,3 @@
-/**
- * @license
- * SPDX-License-Identifier: Apache-2.0
- */
-
 import { LocationProvider } from './context/LocationContext';
 import DashboardLayout from './components/dashboard/DashboardLayout';
 import DashboardHome from './components/dashboard/DashboardHome';
@@ -24,15 +19,19 @@ import AIPromptsPage from './components/dashboard/AIPromptsPage';
 import LocationsPage from './components/dashboard/LocationsPage';
 import MessagesPage from './components/dashboard/MessagesPage';
 import AdRequestsPage from './components/dashboard/AdRequestsPage';
+import AuthGate from './components/auth/AuthGate';
+import { AuthProvider } from './context/AuthContext';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 
 function LayoutWrapper() {
   return (
-    <TeamProvider>
-      <DashboardLayout>
-        <Outlet />
-      </DashboardLayout>
-    </TeamProvider>
+    <AuthGate>
+      <TeamProvider>
+        <DashboardLayout>
+          <Outlet />
+        </DashboardLayout>
+      </TeamProvider>
+    </AuthGate>
   );
 }
 
@@ -60,7 +59,6 @@ const router = createBrowserRouter([
       { path: '/ad-requests', element: <AdRequestsPage /> },
       { path: '/ai', element: <AIPromptsPage /> },
       { path: '/locations', element: <LocationsPage /> },
-
       { path: '/dashboard', element: <DashboardHome /> },
       { path: '/dashboard/analytics', element: <AnalyticsPage /> },
       { path: '/dashboard/posts', element: <PostsPage /> },
@@ -87,10 +85,12 @@ const router = createBrowserRouter([
 
 export default function App() {
   return (
-    <LocationProvider>
-      <PostProvider>
-        <RouterProvider router={router} />
-      </PostProvider>
-    </LocationProvider>
+    <AuthProvider>
+      <LocationProvider>
+        <PostProvider>
+          <RouterProvider router={router} />
+        </PostProvider>
+      </LocationProvider>
+    </AuthProvider>
   );
 }
