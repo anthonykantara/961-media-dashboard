@@ -1,8 +1,7 @@
 import { FolderPlus, Upload, CheckCircle2, FolderInput, Image as ImageIcon, X } from 'lucide-react';
 import { useState, useRef, FormEvent, ChangeEvent } from 'react';
-import { MediaItem, MediaType } from './types';
+import { MediaItem } from './types';
 import { Modal } from '../../common/Modal';
-import { requireAuthToken } from '../../../utils/auth';
 
 const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
 
@@ -82,18 +81,9 @@ export function UploadModal({ isOpen, onClose, currentFolderId, onAddItem }: Upl
     setIsUploading(true);
     setUploadProgress(0);
 
-    let token: string;
-    try {
-      token = requireAuthToken();
-    } catch (authError) {
-      setIsUploading(false);
-      setError(authError instanceof Error ? authError.message : 'Authentication is required to upload media.');
-      return;
-    }
-
     const xhr = new XMLHttpRequest();
     xhr.open('POST', `${API_BASE}/api/media/upload`);
-    xhr.setRequestHeader('Authorization', `Bearer ${token}`);
+    xhr.withCredentials = true;
     xhr.responseType = 'json';
 
     xhr.upload.onprogress = (event) => {
@@ -121,6 +111,11 @@ export function UploadModal({ isOpen, onClose, currentFolderId, onAddItem }: Upl
     xhr.onerror = () => {
       setIsUploading(false);
       setError('Upload failed. Check your connection and try again.');
+    };
+
+    xhr.onabort = () => {
+      setIsUploading(false);
+      setError('Upload was cancelled.');
     };
 
     const formData = new FormData();
