@@ -1,0 +1,31 @@
+name: Fix express slides
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fix syntax
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('src/components/dashboard/posts/CreateExpressPage.tsx')
+          text = p.read_text()
+          old = "const [] = useState<SlideData[]>([\n    { id: 1, text: '7 [Secret Rooftops in Beirut] That Locals Keep to Themselves', customImage: null },\n    { id: 2, text: 'Order the signature [Pomegranate Gin Fizz] while soaking in sunset views.', customImage: null },\n    { id: 3, text: 'Secret terrace access hidden behind [Historic Heritage Buildings] in Mar Mikhael.', customImage: null },\n    { id: 4, text: 'Save this guide and tag your [Weekend Squad] in the comments below!', customImage: null }\n  ]);"
+          if old in text:
+              text = text.replace(old, "const [slides, setSlides] = useState<SlideData[]>([]);")
+          p.write_text(text)
+          import subprocess
+          subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+          subprocess.run(['git','add','src/components/dashboard/posts/CreateExpressPage.tsx'],check=True)
+          if subprocess.run(['git','diff','--cached','--quiet']).returncode != 0:
+              subprocess.run(['git','commit','-m','fix: initialize express slides empty'],check=True)
+              subprocess.run(['git','push'],check=True)
