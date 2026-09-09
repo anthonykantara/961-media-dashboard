@@ -1,5 +1,5 @@
 import React,{createContext,useContext,useEffect,useState,ReactNode}from'react';import{TeamMember}from'./types';import{useDataTable}from'../../../hooks/useDataTable';
-const API=(import.meta.env.VITE_API_URL||(import.meta.env.DEV?'http://localhost:5000':'https://api.961.co')).replace(/\/$/,'');
+const API=(import.meta.env.VITE_API_URL||(import.meta.env.DEV?'http://localhost:5000':'')).replace(/\/$/,'');
 async function api(path:string,options:RequestInit={}){const r=await fetch(`${API}${path}`,{...options,credentials:'include'});const b=await r.json().catch(()=>({}));if(!r.ok)throw new Error(b.message||b.error||'Request failed');return b;}
 interface Ctx{team:TeamMember[];searchQuery:string;setSearchQuery:(q:string)=>void;filteredTeam:TeamMember[];addMember:(email:string,role:TeamMember['role'])=>Promise<void>;removeMember:(id:string)=>Promise<void>;updateMember:(id:string,updates:Partial<TeamMember>)=>Promise<void>;getMember:(id:string)=>TeamMember|undefined;sortField:string|keyof TeamMember|null;sortDirection:'asc'|'desc';handleSort:(f:string|keyof TeamMember)=>void;isLoading:boolean;}
 const TeamContext=createContext<Ctx|undefined>(undefined);
