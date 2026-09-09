@@ -161,8 +161,12 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
       <aside className="w-64 bg-white border-r border-gray-100 flex flex-col shrink-0 sticky top-0 h-screen z-20">
         {/* Sidebar Header with 961 Logo & Location/Language Switcher matching Home */}
         <div className="p-5 pb-4 border-b border-gray-100 flex items-center justify-between gap-2 relative">
-          <Link to="/dashboard" className="text-2xl font-bold text-primary tracking-tighter hover:scale-105 transition-transform shrink-0">
-            961
+          <Link to="/dashboard" className="flex items-center shrink-0 hover:scale-105 transition-transform">
+            <img
+              src="https://961.co/logos/logo-red.png"
+              alt="961"
+              className="h-8 w-auto object-contain"
+            />
           </Link>
 
           {/* Location & Language Switcher */}
