@@ -57,7 +57,7 @@ export default function CreateListiclePage() {
   
   // Media Selector Modal State for Cover
   const [isCoverModalOpen, setIsCoverModalOpen] = useState(false);
-  const [coverTab, setCoverTab] = useState<'presets' | 'upload'>('presets');
+  const [coverTab, setCoverTab] = useState<'presets' | 'upload'>('upload');
   
   // Item Visual Modal State (Targeted to a specific item index or ID)
   const [activeItemVisualIndex, setActiveItemVisualIndex] = useState<number | null>(null);

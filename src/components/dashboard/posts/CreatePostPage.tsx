@@ -40,7 +40,7 @@ export default function CreatePostPage() {
   
   // Media Selector Modal State
   const [isMediaModalOpen, setIsMediaModalOpen] = useState(false);
-  const [mediaTab, setMediaTab] = useState<'presets' | 'upload'>('presets');
+  const [mediaTab, setMediaTab] = useState<'presets' | 'upload'>('upload');
   
   // Simulated AI Generating states
   const [isGeneratingKeywords, setIsGeneratingKeywords] = useState(false);
@@ -134,14 +134,7 @@ export default function CreatePostPage() {
   ];
 
   // Stunning Portrait/Vertical presets (Lebanese scenery)
-  const verticalPresets = [
-    { name: 'Beirut Streets', url: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Lebanese Mountains', url: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Traditional Mezze', url: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Beirut Skyline Night', url: 'https://images.unsplash.com/photo-1517524206127-48bbd363f3d7?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Byblos Port Harbour', url: 'https://images.unsplash.com/photo-1578345218746-50a229b3d0f8?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Cedars Forest Hike', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&h=900&q=80' }
-  ];
+  const verticalPresets = [];
 
   const editorRef = useRef<HTMLDivElement>(null);
 
@@ -217,151 +210,7 @@ export default function CreatePostPage() {
     }));
   };
 
-  const ECOSYSTEM_ITEMS = [
-    {
-      id: 'eco-1',
-      name: 'Em Sherif Café',
-      type: 'Restaurant',
-      location: 'Ashrafieh, Beirut',
-      description: 'A landmark of Lebanese luxury gastronomy offering an elegant café concept with traditional home-style dishes and flawless hospitality.',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/em-sherif-cafe',
-      cta: 'Book Table',
-      meta: 'Lebanese Café • $$$'
-    },
-    {
-      id: 'eco-2',
-      name: 'Baron',
-      type: 'Restaurant',
-      location: 'Mar Mikhael, Beirut',
-      description: 'Acclaimed vegetable-forward and wood-fired Mediterranean dishes. Baron is repeatedly named among the best restaurants in the Middle East.',
-      image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/baron',
-      cta: 'Book Table',
-      meta: 'Mediterranean • $$$$'
-    },
-    {
-      id: 'eco-3',
-      name: 'Liza Beirut',
-      type: 'Restaurant',
-      location: 'Achrafieh, Beirut',
-      description: 'Set in a stunning 19th-century palace, Liza serves light, contemporary Lebanese food in one of the world’s most beautiful restaurant interiors.',
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/liza',
-      cta: 'Book Table',
-      meta: 'Contemporary Lebanese • $$$$'
-    },
-    {
-      id: 'eco-4',
-      name: 'Babel Bay',
-      type: 'Restaurant',
-      location: 'Zaitunay Bay, Beirut',
-      description: 'A premium seafood restaurant reinventing Lebanese coastal heritage dishes, situated on the lively Beirut Marina boardwalk.',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/babel-bay',
-      cta: 'Book Table',
-      meta: 'Seafood • $$$'
-    },
-    {
-      id: 'eco-5',
-      name: 'B018',
-      type: 'Nightlife',
-      location: 'Karantina, Beirut',
-      description: 'The world-famous underground shelter club designed by Bernard Khoury, renowned for its retracting roof and dark techno heritage.',
-      image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/b018',
-      cta: 'Book Lounge',
-      meta: 'Techno Club • 10 PM - 5 AM'
-    },
-    {
-      id: 'eco-6',
-      name: 'Iris Beirut',
-      type: 'Nightlife',
-      location: 'Downtown Beirut',
-      description: 'An open-air rooftop lounge with stellar cityscape and sea views, famous for sunset cocktails and live acoustic music sessions.',
-      image: 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/iris',
-      cta: 'Book Lounge',
-      meta: 'Rooftop Lounge • 6 PM - 2 AM'
-    },
-    {
-      id: 'eco-7',
-      name: 'MusicHall',
-      type: 'Nightlife',
-      location: 'Waterfront, Beirut',
-      description: 'An iconic cabaret venue presenting an eclectic mix of short, live musical performances from opera and rock to Arabic fusion.',
-      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/musichall',
-      cta: 'Book Lounge',
-      meta: 'Music Cabaret • 9 PM - 3 AM'
-    },
-    {
-      id: 'eco-8',
-      name: 'Albergo Hotel',
-      type: 'Stays',
-      location: 'Achrafieh, Beirut',
-      description: 'Beirut’s most legendary boutique hotel. Indulge in individual custom-themed suites, vintage orientalist charm, and a stunning rooftop pool garden.',
-      image: 'https://images.unsplash.com/photo-1566073771259-6a8506099945?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/albergo',
-      cta: 'Book Stay',
-      meta: 'Boutique Hotel • From $220/night'
-    },
-    {
-      id: 'eco-9',
-      name: 'Bkerzay',
-      type: 'Stays',
-      location: 'Chouf Mountains',
-      description: 'A tranquil eco-village nestled in the Chouf pine forests, highlighting stone architecture, organic pottery workshops, and hiking trails.',
-      image: 'https://images.unsplash.com/photo-1445019980597-93fa8acb246c?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/bkerzay',
-      cta: 'Book Stay',
-      meta: 'Eco-Village • From $180/night'
-    },
-    {
-      id: 'eco-10',
-      name: 'Beit Douma',
-      type: 'Stays',
-      location: 'Douma, Batroun District',
-      description: 'A restored 19th-century Lebanese home perched in a historic village, celebrated for its gourmet homemade farm breakfasts and slow lifestyle.',
-      image: 'https://images.unsplash.com/photo-1546548970-71785318a17b?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/beit-douma',
-      cta: 'Book Stay',
-      meta: 'Heritage Guesthouse • From $150/night'
-    },
-    {
-      id: 'eco-11',
-      name: 'Arthaus Beirut',
-      type: 'Stays',
-      location: 'Gemmayzeh, Beirut',
-      description: 'An oasis of art and design located inside four interconnected heritage houses, featuring a private leafy courtyard and modern art collections.',
-      image: 'https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/arthaus',
-      cta: 'Book Stay',
-      meta: 'Boutique Art Hotel • From $200/night'
-    },
-    {
-      id: 'eco-12',
-      name: 'Anthony Rahayel',
-      type: 'Creators',
-      location: 'NoGarlicNoOnions creator',
-      description: 'Lebanon’s most famous food and travel ambassador, chronicling culinary treasures, local farmers, and hidden gastronomic gems of the country.',
-      image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/creators/anthony-rahayel',
-      cta: 'Follow',
-      meta: 'Food & Travel • 1.2M Followers'
-    },
-    {
-      id: 'eco-13',
-      name: 'Serge Majdalani',
-      type: 'Creators',
-      location: 'Travel photographer',
-      description: 'A leading travel and adventure storyteller showcasing spectacular aerial drone perspectives and rugged natural wonders of Lebanese landscapes.',
-      image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/creators/serge-majdalani',
-      cta: 'Follow',
-      meta: 'Travel & Photography • 450K Followers'
-    }
-  ];
+  const ECOSYSTEM_ITEMS = [];
 
   const filteredEcosystemItems = ECOSYSTEM_ITEMS.filter(item => {
     const matchesSearch = 
