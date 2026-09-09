@@ -97,46 +97,13 @@ export default function CreateListiclePage() {
     intro: '',
     categories: ['Lifestyle'] as string[],
     status: 'Draft' as 'Draft' | 'Published' | 'Scheduled' | 'Review',
-    image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&h=900&q=80',
-    selectedAuthors: ['Anthony Rahayel'] as string[],
-    keywords: ['Beirut', 'Lebanon', 'List'] as string[],
+    image: '',
+    selectedAuthors: [] as string[],
+    keywords: [] as string[],
     newKeywordInput: '',
     scheduleDate: '',
     scheduleTime: '',
-    items: [
-      {
-        id: 'item-1',
-        title: 'Em Sherif Café',
-        visual: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=800&h=600&q=80',
-        visualType: '961' as 'image' | '961',
-        visualMeta: {
-          name: 'Em Sherif Café',
-          type: 'Restaurant',
-          location: 'Ashrafieh, Beirut',
-          description: 'A landmark of Lebanese luxury gastronomy offering an elegant café concept with traditional home-style dishes and flawless hospitality.',
-          url: 'https://the961.com/places/em-sherif-cafe',
-          cta: 'Book Table',
-          meta: 'Lebanese Café • $$$'
-        },
-        text: 'A landmark of Lebanese gastronomy offering authentic flavors with immaculate presentation and traditional hospitality.'
-      },
-      {
-        id: 'item-2',
-        title: 'Baron Beirut',
-        visual: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=800&h=600&q=80',
-        visualType: '961' as 'image' | '961',
-        visualMeta: {
-          name: 'Baron',
-          type: 'Restaurant',
-          location: 'Mar Mikhael, Beirut',
-          description: 'Acclaimed vegetable-forward and wood-fired Mediterranean dishes. Baron is repeatedly named among the best restaurants in the Middle East.',
-          url: 'https://the961.com/places/baron',
-          cta: 'Book Table',
-          meta: 'Mediterranean • $$$$'
-        },
-        text: 'Ranked consistently among the best in MENA, Baron serves organic, vegetable-forward Mediterranean plates with wood-fired flare.'
-      }
-    ] as ListicleItem[]
+    items: [{ id: 'item-1', title: '', visual: '', visualType: 'image' as 'image' | '961', text: '' }] as ListicleItem[]
   });
 
   const [initialFormData, setInitialFormData] = useState<typeof formData | null>(null);
@@ -194,83 +161,9 @@ export default function CreateListiclePage() {
     { name: 'Diaspora', icon: Globe, color: 'text-emerald-600 bg-emerald-50 border-emerald-100' }
   ];
 
-  const verticalPresets = [
-    { name: 'Beirut Streets', url: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Lebanese Mountains', url: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Traditional Mezze', url: 'https://images.unsplash.com/photo-1541518763669-27fef04b14ea?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Beirut Skyline Night', url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Byblos Port Harbour', url: 'https://images.unsplash.com/photo-1578345218746-50a229b3d0f8?auto=format&fit=crop&w=600&h=900&q=80' },
-    { name: 'Cedars Forest Hike', url: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&w=600&h=900&q=80' }
-  ];
+  const verticalPresets = [];
 
-  const ECOSYSTEM_ITEMS = [
-    {
-      id: 'eco-1',
-      name: 'Em Sherif Café',
-      type: 'Restaurant',
-      location: 'Ashrafieh, Beirut',
-      description: 'A landmark of Lebanese luxury gastronomy offering an elegant café concept with traditional home-style dishes and flawless hospitality.',
-      image: 'https://images.unsplash.com/photo-1544025162-d76694265947?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/em-sherif-cafe',
-      cta: 'Book Table',
-      meta: 'Lebanese Café • $$$'
-    },
-    {
-      id: 'eco-2',
-      name: 'Baron',
-      type: 'Restaurant',
-      location: 'Mar Mikhael, Beirut',
-      description: 'Acclaimed vegetable-forward and wood-fired Mediterranean dishes. Baron is repeatedly named among the best restaurants in the Middle East.',
-      image: 'https://images.unsplash.com/photo-1514933651103-005eec06c04b?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/baron',
-      cta: 'Book Table',
-      meta: 'Mediterranean • $$$$'
-    },
-    {
-      id: 'eco-3',
-      name: 'Liza Beirut',
-      type: 'Restaurant',
-      location: 'Achrafieh, Beirut',
-      description: 'Set in a stunning 19th-century palace, Liza serves light, contemporary Lebanese food in one of the world’s most beautiful restaurant interiors.',
-      image: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/liza',
-      cta: 'Book Table',
-      meta: 'Contemporary Lebanese • $$$$'
-    },
-    {
-      id: 'eco-4',
-      name: 'Babel Bay',
-      type: 'Restaurant',
-      location: 'Zaitunay Bay, Beirut',
-      description: 'A premium seafood restaurant reinventing Lebanese coastal heritage dishes, situated on the lively Beirut Marina boardwalk.',
-      image: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/babel-bay',
-      cta: 'Book Table',
-      meta: 'Seafood • $$$'
-    },
-    {
-      id: 'eco-5',
-      name: 'B018',
-      type: 'Nightlife',
-      location: 'Karantina, Beirut',
-      description: 'The world-famous underground shelter club designed by Bernard Khoury, renowned for its retracting roof and dark techno heritage.',
-      image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/b018',
-      cta: 'Book Lounge',
-      meta: 'Techno Club • 10 PM - 5 AM'
-    },
-    {
-      id: 'eco-6',
-      name: 'Iris Beirut',
-      type: 'Nightlife',
-      location: 'Downtown Beirut',
-      description: 'An open-air rooftop lounge with stellar cityscape and sea views, famous for sunset cocktails and live acoustic music sessions.',
-      image: 'https://images.unsplash.com/photo-1533777857889-4be7c70b33f7?auto=format&fit=crop&w=400&h=400&q=80',
-      url: 'https://the961.com/places/iris',
-      cta: 'Book Lounge',
-      meta: 'Rooftop Lounge • 6 PM - 2 AM'
-    }
-  ];
+  const ECOSYSTEM_ITEMS = [];
 
   // Intro formatting helpers
   const applyIntroFormat = (command: string, value: string = '') => {

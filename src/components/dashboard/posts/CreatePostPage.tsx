@@ -85,9 +85,9 @@ export default function CreatePostPage() {
     content: '',
     categories: ['News'] as string[],
     status: 'Draft' as 'Draft' | 'Published' | 'Scheduled' | 'Review',
-    image: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=600&h=900&q=80', // Default Beirut street vertical
-    selectedAuthors: ['Anthony Rahayel'] as string[], // Defaulted to current user
-    keywords: ['Beirut', 'Lebanon'] as string[],
+    image: '', // Default Beirut street vertical
+    selectedAuthors: [] as string[], // Defaulted to current user
+    keywords: [] as string[],
     newKeywordInput: '',
     scheduleDate: '',
     scheduleTime: ''

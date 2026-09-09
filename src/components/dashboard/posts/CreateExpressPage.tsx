@@ -68,14 +68,7 @@ const STATUS_OPTIONS: Array<'Published' | 'Draft' | 'Scheduled' | 'Review'> = [
   'Published'
 ];
 
-const PRESET_IMAGES = [
-  { url: 'https://images.unsplash.com/photo-1545569341-9eb8b30979d9?auto=format&fit=crop&w=1080&h=1350&q=80', title: 'Beirut Gemmayzeh Street' },
-  { url: 'https://images.unsplash.com/photo-1517248135467-4c7edcad34c4?auto=format&fit=crop&w=1080&h=1350&q=80', title: 'Modern Beirut Restaurant' },
-  { url: 'https://images.unsplash.com/photo-1544620347-c4fd4a3d5957?auto=format&fit=crop&w=1080&h=1350&q=80', title: 'Batroun Coastline' },
-  { url: 'https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1080&h=1350&q=80', title: 'Mediterranean Sunset' },
-  { url: 'https://images.unsplash.com/photo-1441974231531-c6227db76b6e?auto=format&fit=crop&w=1080&h=1350&q=80', title: 'Cedars Nature Trail' },
-  { url: 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?auto=format&fit=crop&w=1080&h=1350&q=80', title: 'Lebanese Mezze Spread' }
-];
+const PRESET_IMAGES = [];
 
 export default function CreateExpressPage() {
   const navigate = useNavigate();
@@ -84,29 +77,27 @@ export default function CreateExpressPage() {
 
   // Step 1: Initial Setup Modal State (Accepts raw text / dropped ideas)
   const [isSetupModalOpen, setIsSetupModalOpen] = useState(true);
-  const [rawInputText, setRawInputText] = useState(
-    `Top 7 Secret Rooftop Bars in Beirut for Sunset Drinks.\n- Unobstructed sunset views over the Mediterranean\n- Signature botanical cocktails with local herbs and orange blossom\n- Hidden balconies in Mar Mikhael and Gemmayzeh\n- Exclusive Friday sunset reservations`
-  );
+  const [rawInputText, setRawInputText] = useState('');
   const [category, setCategory] = useState('Food & Drink');
   const [isGeneratingHeadlines, setIsGeneratingHeadlines] = useState(false);
   const [headlineOptions, setHeadlineOptions] = useState<HeadlineOption[]>([]);
   const [selectedHeadlineId, setSelectedHeadlineId] = useState<string | null>(null);
 
   // Metadata Settings (Author & Language components from Article Creator)
-  const [selectedAuthors, setSelectedAuthors] = useState<string[]>(['Anthony Rahayel']);
+  const [selectedAuthors, setSelectedAuthors] = useState<string[]>([]);
   const [authorSearch, setAuthorSearch] = useState('');
   const [language, setLanguage] = useState('en');
   const [isLanguageModalOpen, setIsLanguageModalOpen] = useState(false);
-  const [status, setStatus] = useState<'Published' | 'Draft' | 'Scheduled' | 'Review'>('Published');
+  const [status, setStatus] = useState<'Published' | 'Draft' | 'Scheduled' | 'Review'>('Draft');
 
   // Step 2: Main Workspace State
-  const [headline, setHeadline] = useState('7 [Secret Rooftops in Beirut] That Locals Keep to Themselves');
+  const [headline, setHeadline] = useState('');
   const [activeSocialTab, setActiveSocialTab] = useState<'summary' | 'instagram'>('summary');
   const [socialSummary, setSocialSummary] = useState('');
   const [instagramCaption, setInstagramCaption] = useState('');
   
   // Carousel Slide Snippets (4 slides) - First slide has same text as headline
-  const [slides, setSlides] = useState<SlideData[]>([
+  const [] = useState<SlideData[]>([
     { id: 1, text: '7 [Secret Rooftops in Beirut] That Locals Keep to Themselves', customImage: null },
     { id: 2, text: 'Order the signature [Pomegranate Gin Fizz] while soaking in sunset views.', customImage: null },
     { id: 3, text: 'Secret terrace access hidden behind [Historic Heritage Buildings] in Mar Mikhael.', customImage: null },
@@ -114,7 +105,7 @@ export default function CreateExpressPage() {
   ]);
 
   // Media state
-  const [mainCoverImage, setMainCoverImage] = useState<string | null>(PRESET_IMAGES[0].url);
+  const [mainCoverImage, setMainCoverImage] = useState<string | null>(null);
   const [isMediaPickerOpen, setIsMediaPickerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
