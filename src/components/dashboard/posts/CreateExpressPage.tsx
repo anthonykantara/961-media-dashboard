@@ -309,7 +309,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
       { id: 4, text: 'Save this post & tag your [Sunset Squad] in the comments below!', customImage: null }
     ]);
 
-    if (!mainCoverImage) {
+    if (!mainCoverImage && PRESET_IMAGES.length > 0) {
       setMainCoverImage(PRESET_IMAGES[0].url);
     }
 
@@ -396,7 +396,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
         category: category,
         status: status,
         author: selectedAuthors.join(', '),
-        image: mainCoverImage || PRESET_IMAGES[0].url,
+        image: mainCoverImage || PRESET_IMAGES[0]?.url || '',
         language: language
       });
       setPublishedPostId(newPost.id);
@@ -933,7 +933,7 @@ We curated the top secret rooftop spots in Beirut with unbeatable views, crafted
                 src={
                   slides.find(s => s.id === previewSlideId)?.customImage || 
                   mainCoverImage || 
-                  PRESET_IMAGES[0].url
+                  PRESET_IMAGES[0]?.url || ''
                 } 
                 alt="Slide Preview" 
                 className={`absolute inset-0 w-full h-full object-cover transition-all ${
