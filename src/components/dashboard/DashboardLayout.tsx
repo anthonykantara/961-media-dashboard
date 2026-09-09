@@ -25,7 +25,6 @@ import { useLocationContext } from '../../context/LocationContext';
 import LocationDropdown from '../common/LocationDropdown';
 import { FlagIcon } from '../common/FlagIcon';
 import { usePostContext } from './posts/PostContext';
-import { initialPosts } from './posts/mockData';
 import { getAvailableLanguagesForLocation } from '../../utils/contentVisibility';
 import { SUPPORTED_LANGUAGES } from '../../types/location';
 
@@ -80,14 +79,14 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const { locations, activeLocation, activeLanguage, activeLanguageInfo, setActiveLanguage } = useLocationContext();
 
-  let posts = initialPosts;
+  let posts: any[] = [];
   try {
     const postCtx = usePostContext();
     if (postCtx && postCtx.posts) {
       posts = postCtx.posts;
     }
   } catch {
-    posts = initialPosts;
+    posts = [];
   }
 
   // Dynamic available languages based on published articles for this location

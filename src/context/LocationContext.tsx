@@ -1,4 +1,5 @@
 import React,{createContext,useContext,useEffect,useState,ReactNode}from'react';import{LocationTerritory,SupportedLanguage,SUPPORTED_LANGUAGES}from'../types/location';
+export const GLOBAL_SUPPORTED_LANGUAGES = ['en', 'ar', 'fr', 'sk'];
 const LEBANON:LocationTerritory={id:'lb',name:'Lebanon',slug:'lb',level:'country',countryCode:'LB',flagEmoji:'🇱🇧',isHub:false,status:'active',supportedLanguages:['en','ar','fr'],defaultLanguage:'en'};
 interface Ctx{locations:LocationTerritory[];activeLocationId:string;activeLocation:LocationTerritory;activeLanguage:string;activeLanguageInfo:SupportedLanguage;availableLanguages:SupportedLanguage[];setActiveLocationId:(id:string|null)=>void;setActiveLanguage:(lang:string)=>void;setActiveLocationAndLanguage:(id:string|null,lang?:string)=>void;addLocation:(l:LocationTerritory)=>void;updateLocation:(l:LocationTerritory)=>void;deleteLocation:(id:string)=>void;smartDetectLocation:()=>Promise<LocationTerritory>;isDetecting:boolean;detectedMessage:string|null;getLocationUrl:(l:LocationTerritory|null,lang?:string)=>string;}
 const C=createContext<Ctx|undefined>(undefined);

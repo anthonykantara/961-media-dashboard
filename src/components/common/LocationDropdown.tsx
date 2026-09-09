@@ -4,7 +4,6 @@ import { ChevronRight, Cpu, TrendingUp, Trophy } from 'lucide-react';
 import { LocationTerritory } from '../../types/location';
 import { FlagIcon } from './FlagIcon';
 import { usePostContext } from '../dashboard/posts/PostContext';
-import { initialPosts } from '../dashboard/posts/mockData';
 import { hasPublishedArticlesForLocation } from '../../utils/contentVisibility';
 
 interface LocationDropdownProps {
@@ -33,15 +32,15 @@ export default function LocationDropdown({
     setActiveLocationAndLanguage, 
   } = useLocationContext();
 
-  // Safely get posts from context if inside PostProvider, else fallback to initialPosts
-  let posts = initialPosts;
+  // Safely get posts from context if inside PostProvider, else fallback to empty array
+  let posts: any[] = [];
   try {
     const postContext = usePostContext();
     if (postContext && postContext.posts) {
       posts = postContext.posts;
     }
   } catch {
-    posts = initialPosts;
+    posts = [];
   }
 
   const dropdownRef = useRef<HTMLDivElement>(null);
