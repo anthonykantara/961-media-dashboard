@@ -25,7 +25,7 @@ import { useLocationContext } from '../../context/LocationContext';
 import LocationDropdown from '../common/LocationDropdown';
 import { FlagIcon } from '../common/FlagIcon';
 import { usePostContext } from './posts/PostContext';
-import { initialPosts } from './posts/mockData';
+import type { Post } from './posts/types';
 import { getAvailableLanguagesForLocation } from '../../utils/contentVisibility';
 import { SUPPORTED_LANGUAGES } from '../../types/location';
 
@@ -80,14 +80,16 @@ export default function DashboardLayout({ children }: { children: ReactNode }) {
 
   const { locations, activeLocation, activeLanguage, activeLanguageInfo, setActiveLanguage } = useLocationContext();
 
-  let posts = initialPosts;
+  // Safely get posts from context if inside PostProvider. When rendered outside
+  // the provider, use an empty list rather than relying on obsolete mock data.
+  let posts: Post[] = [];
   try {
     const postCtx = usePostContext();
     if (postCtx && postCtx.posts) {
       posts = postCtx.posts;
     }
   } catch {
-    posts = initialPosts;
+    posts = [];
   }
 
   // Dynamic available languages based on published articles for this location
