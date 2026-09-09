@@ -59,6 +59,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(null);
   }, []);
 
+  useEffect(() => {
+    const handleLogoutClick = (event: MouseEvent) => {
+      const target = event.target as HTMLElement | null;
+      const button = target?.closest('button');
+      if (button?.textContent?.trim().toLowerCase() === 'log out') {
+        event.preventDefault();
+        event.stopPropagation();
+        void logout();
+      }
+    };
+    document.addEventListener('click', handleLogoutClick, true);
+    return () => document.removeEventListener('click', handleLogoutClick, true);
+  }, [logout]);
+
   const value = useMemo(() => ({ user, loading, requestOtp, verifyOtp, logout }), [user, loading, requestOtp, verifyOtp, logout]);
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
