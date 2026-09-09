@@ -1,0 +1,31 @@
+name: One-shot logo update
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Replace dashboard wordmark with official logo
+        shell: python
+        run: |
+          from pathlib import Path
+          p = Path('src/components/dashboard/DashboardLayout.tsx')
+          text = p.read_text()
+          old = '''<Link to="/dashboard" className="text-2xl font-bold text-primary tracking-tighter hover:scale-105 transition-transform shrink-0">\n            961\n          </Link>'''
+          new = '''<Link to="/dashboard" className="flex items-center shrink-0 hover:scale-105 transition-transform">\n            <img\n              src="https://961.co/logos/logo-red.png"\n              alt="961"\n              className="h-8 w-auto object-contain"\n            />\n          </Link>'''
+          if old not in text:
+              raise SystemExit('Expected dashboard logo markup not found')
+          p.write_text(text.replace(old, new, 1))
+          import subprocess
+          subprocess.run(['git','config','user.name','github-actions[bot]'],check=True)
+          subprocess.run(['git','config','user.email','41898282+github-actions[bot]@users.noreply.github.com'],check=True)
+          subprocess.run(['git','add','src/components/dashboard/DashboardLayout.tsx'],check=True)
+          subprocess.run(['git','commit','-m','fix: use official 961 logo in dashboard'],check=True)
+          subprocess.run(['git','push'],check=True)
