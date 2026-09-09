@@ -4,7 +4,6 @@ import {
   Layers
 } from 'lucide-react';
 import { useCategories } from './categories/useCategories';
-import { initialCategories } from './categories/mockData';
 import CategoryTable from './categories/CategoryTable';
 import { AddCategoryModal, EditCategoryModal, DeleteCategoryModal } from './categories/CategoryModals';
 import { Category } from './categories/types';
@@ -22,7 +21,7 @@ export default function CategoriesPage() {
     sortDirection,
     handleSort,
     isLoading
-  } = useCategories(initialCategories);
+  } = useCategories([]);
 
   const addModal = useModal();
   const editModal = useModal<Category>();
@@ -74,7 +73,7 @@ export default function CategoriesPage() {
             <Layers className="w-6 h-6 text-gray-300" />
           </div>
           <h3 className="text-sm font-semibold text-gray-900">No sections found</h3>
-          <p className="text-gray-400 text-xs mt-1">Try adjusting your search query</p>
+          <p className="text-gray-400 text-xs mt-1">Create a section to get started</p>
         </div>
       )}
 
