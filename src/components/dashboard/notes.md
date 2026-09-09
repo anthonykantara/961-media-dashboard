@@ -1,0 +1,1 @@
+Production data refactor: API-backed screens are Posts, Media, Team, Analytics, Messages, Ideas and Ads. Sections and Pages remain unchanged by request. Locations are Lebanon-only.
