@@ -1,0 +1,44 @@
+name: Fix production API and branding defaults
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  fix:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Update production API fallback
+        shell: python
+        run: |
+          from pathlib import Path
+          import re
+          files = [
+            'src/context/AuthContext.tsx',
+            'src/context/LocationContext.tsx',
+            'src/components/dashboard/posts/PostContext.tsx',
+            'src/components/dashboard/team/TeamContext.tsx',
+          ]
+          for name in files:
+            p = Path(name)
+            text = p.read_text()
+            text = text.replace("import.meta.env.VITE_API_URL || ''", "import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : 'https://api.961.co')")
+            text = text.replace("import.meta.env.VITE_API_URL||''", "import.meta.env.VITE_API_URL||(import.meta.env.DEV?'http://localhost:5000':'https://api.961.co')")
+            p.write_text(text)
+
+          p = Path('package.json')
+          text = p.read_text()
+          text = text.replace('"name": "react-example"', '"name": "961-media-cms"')
+          p.write_text(text)
+
+          import subprocess
+          subprocess.run(['git', 'config', 'user.name', 'github-actions[bot]'], check=True)
+          subprocess.run(['git', 'config', 'user.email', '41898282+github-actions[bot]@users.noreply.github.com'], check=True)
+          subprocess.run(['git', 'add', *files, 'package.json'], check=True)
+          if subprocess.run(['git', 'diff', '--cached', '--quiet']).returncode != 0:
+              subprocess.run(['git', 'commit', '-m', 'chore: wire CMS to production media API'], check=True)
+              subprocess.run(['git', 'push'], check=True)
