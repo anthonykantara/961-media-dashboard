@@ -1,6 +1,9 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { MediaItem, MediaType, SortOption } from './types';
 import { useDataTable } from '../../../hooks/useDataTable';
+
+const API_BASE = (import.meta as any).env?.VITE_API_URL || 'http://localhost:5000';
+const fetchOptions: RequestInit = { credentials: 'include' };
 
 export function useMedia(initialData: MediaItem[]) {
   const [media, setMedia] = useState<MediaItem[]>(initialData);
@@ -11,9 +14,21 @@ export function useMedia(initialData: MediaItem[]) {
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
 
+  useEffect(() => {
+    let mounted = true;
+    fetch(`${API_BASE}/api/media`, fetchOptions)
+      .then(async response => {
+        if (!response.ok) throw new Error(`Media API returned ${response.status}`);
+        const data = await response.json();
+        if (mounted && Array.isArray(data)) setMedia(data);
+      })
+      .catch(error => console.warn('Media API unavailable; using local fallback:', error.message));
+    return () => { mounted = false; };
+  }, []);
+
   const currentFolder = useMemo(() => {
     if (!currentFolderId) return null;
-    return media.find(item => item.id === currentFolderId);
+    return media.find(item => item.id === currentFolderId) || null;
   }, [currentFolderId, media]);
 
   const breadcrumbs = useMemo(() => {
@@ -21,12 +36,9 @@ export function useMedia(initialData: MediaItem[]) {
     let currentId = currentFolderId;
     while (currentId) {
       const folder = media.find(item => item.id === currentId);
-      if (folder) {
-        path.unshift(folder);
-        currentId = folder.parentId;
-      } else {
-        break;
-      }
+      if (!folder) break;
+      path.unshift(folder);
+      currentId = folder.parentId;
     }
     return path;
   }, [currentFolderId, media]);
@@ -34,28 +46,18 @@ export function useMedia(initialData: MediaItem[]) {
   const filterFn = (item: MediaItem) => {
     const isCorrectFolder = item.parentId === currentFolderId;
     const matchesType = filterType === 'all' || item.type === filterType;
-
     let matchesLink = true;
     if (item.type !== 'folder') {
-      const isLinked = item.linkedTo && item.linkedTo.length > 0;
-      if (linkFilter === 'linked') matchesLink = !!isLinked;
+      const isLinked = Boolean(item.linkedTo && item.linkedTo.length > 0);
+      if (linkFilter === 'linked') matchesLink = isLinked;
       if (linkFilter === 'unlinked') matchesLink = !isLinked;
     }
-
     return isCorrectFolder && matchesType && matchesLink;
   };
 
-  const customComparator = (
-    a: MediaItem,
-    b: MediaItem,
-    sortField: string | keyof MediaItem | null,
-    sortDirection: 'asc' | 'desc'
-  ) => {
-    // Folders stay pinned at top of results regardless of sort
+  const customComparator = (a: MediaItem, b: MediaItem, sortField: string | keyof MediaItem | null, sortDirection: 'asc' | 'desc') => {
     if (a.type === 'folder' && b.type !== 'folder') return -1;
     if (a.type !== 'folder' && b.type === 'folder') return 1;
-
-    // If table column header sort is active, sort by sortField & sortDirection
     if (sortField) {
       if (sortField === 'createdAt') {
         const timeA = new Date(a.createdAt).getTime();
@@ -72,59 +74,31 @@ export function useMedia(initialData: MediaItem[]) {
           ? a.name.localeCompare(b.name, undefined, { numeric: true, sensitivity: 'base' })
           : b.name.localeCompare(a.name, undefined, { numeric: true, sensitivity: 'base' });
       }
-      if (sortField === 'type') {
-        return sortDirection === 'asc' ? a.type.localeCompare(b.type) : b.type.localeCompare(a.type);
-      }
+      if (sortField === 'type') return sortDirection === 'asc' ? a.type.localeCompare(b.type) : b.type.localeCompare(a.type);
     }
-
     switch (sortBy) {
-      case 'newest':
-        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-      case 'oldest':
-        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
-      case 'size-desc':
-        return (b.size || 0) - (a.size || 0);
-      case 'size-asc':
-        return (a.size || 0) - (b.size || 0);
-      case 'name-asc':
-        return a.name.localeCompare(b.name);
-      default:
-        return 0;
+      case 'newest': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      case 'oldest': return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      case 'size-desc': return (b.size || 0) - (a.size || 0);
+      case 'size-asc': return (a.size || 0) - (b.size || 0);
+      case 'name-asc': return a.name.localeCompare(b.name);
+      default: return 0;
     }
   };
 
-  const dataTable = useDataTable<MediaItem>({
-    data: media,
-    searchFields: ['name'],
-    filterFn,
-    customComparator,
-  });
+  const dataTable = useDataTable<MediaItem>({ data: media, searchFields: ['name'], filterFn, customComparator });
 
   const storageStats = useMemo(() => {
-    let totalSize = 0;
-    let imageSize = 0;
-    let videoSize = 0;
-    let docSize = 0;
-    let audioSize = 0;
-
+    let totalSize = 0, imageSize = 0, videoSize = 0, docSize = 0, audioSize = 0;
     media.forEach(item => {
-      if (item.size) {
-        totalSize += item.size;
-        if (item.type === 'image') imageSize += item.size;
-        if (item.type === 'video') videoSize += item.size;
-        if (item.type === 'document') docSize += item.size;
-        if (item.type === 'audio') audioSize += item.size;
-      }
+      if (!item.size) return;
+      totalSize += item.size;
+      if (item.type === 'image') imageSize += item.size;
+      if (item.type === 'video') videoSize += item.size;
+      if (item.type === 'document') docSize += item.size;
+      if (item.type === 'audio') audioSize += item.size;
     });
-
-    return {
-      totalSize,
-      imageSize,
-      videoSize,
-      docSize,
-      audioSize,
-      maxSize: 100 * 1024 * 1024 * 1024
-    };
+    return { totalSize, imageSize, videoSize, docSize, audioSize, maxSize: 100 * 1024 * 1024 * 1024 };
   }, [media]);
 
   const navigateToFolder = (folderId: string | null) => {
@@ -136,57 +110,60 @@ export function useMedia(initialData: MediaItem[]) {
   const deleteItem = (id: string) => {
     setMedia(prev => prev.filter(item => item.id !== id));
     setSelectedIds(prev => prev.filter(selectedId => selectedId !== id));
+    fetch(`${API_BASE}/api/media/${id}`, { method: 'DELETE', ...fetchOptions })
+      .catch(error => console.error('Error deleting media item:', error));
   };
 
   const updateItem = (id: string, updates: Partial<MediaItem>) => {
     setMedia(prev => prev.map(item => item.id === id ? { ...item, ...updates } : item));
+    fetch(`${API_BASE}/api/media/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(updates),
+    }).catch(error => console.error('Error updating media item:', error));
   };
 
-  const addItem = (newItem: MediaItem) => {
-    setMedia(prev => [newItem, ...prev]);
-  };
+  const addItem = (newItem: MediaItem) => setMedia(prev => [newItem, ...prev]);
 
-  const createFolder = (name: string, color?: string) => {
-    const newFolder: MediaItem = {
-      id: `folder-${Date.now()}`,
-      name,
-      type: 'folder',
-      parentId: currentFolderId,
-      createdAt: new Date().toISOString(),
-      folderColor: color || '#FF0000'
-    };
-    addItem(newFolder);
-  };
-
-  const toggleSelect = (id: string) => {
-    setSelectedIds(prev => 
-      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
-    );
-  };
-
-  const selectAll = () => {
-    if (selectedIds.length === dataTable.filteredData.length) {
-      setSelectedIds([]);
-    } else {
-      setSelectedIds(dataTable.filteredData.map(item => item.id));
+  const createFolder = async (name: string, color?: string) => {
+    try {
+      const response = await fetch(`${API_BASE}/api/media/folders`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, parentId: currentFolderId, folderColor: color || '#FF0000' }),
+      });
+      if (!response.ok) throw new Error(`Folder API returned ${response.status}`);
+      addItem(await response.json());
+    } catch (error) {
+      console.error('Error creating media folder:', error);
     }
   };
 
-  const clearSelection = () => {
-    setSelectedIds([]);
-  };
-
   const bulkDelete = () => {
-    setMedia(prev => prev.filter(item => !selectedIds.includes(item.id)));
+    const ids = [...selectedIds];
+    setMedia(prev => prev.filter(item => !ids.includes(item.id)));
     setSelectedIds([]);
+    Promise.all(ids.map(id => fetch(`${API_BASE}/api/media/${id}`, { method: 'DELETE', ...fetchOptions })))
+      .catch(error => console.error('Error deleting media items:', error));
   };
 
   const bulkMove = (targetFolderId: string | null) => {
-    setMedia(prev => prev.map(item => 
-      selectedIds.includes(item.id) ? { ...item, parentId: targetFolderId } : item
-    ));
+    const ids = [...selectedIds];
+    setMedia(prev => prev.map(item => ids.includes(item.id) ? { ...item, parentId: targetFolderId } : item));
     setSelectedIds([]);
+    Promise.all(ids.map(id => fetch(`${API_BASE}/api/media/${id}`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ parentId: targetFolderId }),
+    }))).catch(error => console.error('Error moving media items:', error));
   };
+
+  const toggleSelect = (id: string) => setSelectedIds(prev => prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]);
+  const selectAll = () => setSelectedIds(prev => prev.length === dataTable.filteredData.length ? [] : dataTable.filteredData.map(item => item.id));
+  const clearSelection = () => setSelectedIds([]);
 
   return {
     media,
@@ -201,10 +178,7 @@ export function useMedia(initialData: MediaItem[]) {
     linkFilter,
     setLinkFilter,
     sortBy,
-    setSortBy: (option: SortOption) => {
-      setSortBy(option);
-      dataTable.setSortField(null);
-    },
+    setSortBy: (option: SortOption) => { setSortBy(option); dataTable.setSortField(null); },
     viewMode,
     setViewMode,
     selectedIds,
