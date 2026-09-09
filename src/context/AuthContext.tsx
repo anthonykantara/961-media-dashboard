@@ -2,7 +2,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState, R
 
 export interface AuthUser { id: string; email: string; role: string; displayName?: string | null; }
 interface AuthContextValue { user: AuthUser | null; loading: boolean; requestOtp: (email: string) => Promise<number>; verifyOtp: (email: string, code: string) => Promise<void>; logout: () => Promise<void>; }
-const API_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : 'https://api.961.co')).replace(/\/$/, '');
+const API_URL = (import.meta.env.VITE_API_URL || (import.meta.env.DEV ? 'http://localhost:5000' : '')).replace(/\/$/, '');
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 async function api(path: string, options: RequestInit = {}) { const r = await fetch(`${API_URL}${path}`, { ...options, credentials: 'include' }); const body = await r.json().catch(() => ({})); if (!r.ok) throw new Error(body.message || body.error || 'Request failed'); return body; }
 export function AuthProvider({ children }: { children: ReactNode }) {
