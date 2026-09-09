@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { Plus, FileText } from 'lucide-react';
-import { initialPages } from './pages/mockData';
 import { usePages } from './pages/usePages';
 import PageTable from './pages/PageTable';
 import { AddPageModal, EditPageModal } from './pages/PageModals';
@@ -28,7 +27,7 @@ export default function PagesPage() {
     updatePage,
     deletePage,
     isLoading
-  } = usePages(initialPages);
+  } = usePages([]);
 
   const addModal = useModal();
   const editModal = useModal<Page>();
@@ -37,7 +36,6 @@ export default function PagesPage() {
     editModal.openModal(page);
   };
 
-  // Language count breakdown
   const languageCounts = pages.reduce((acc, p) => {
     const lang = p.language || 'en';
     acc[lang] = (acc[lang] || 0) + 1;
@@ -46,7 +44,6 @@ export default function PagesPage() {
 
   return (
     <div className="max-w-[1200px] mx-auto space-y-6 pb-12">
-      {/* Portal Add New Page Button to Dashboard Header */}
       {headerSlot && createPortal(
         <button
           type="button"
@@ -59,7 +56,6 @@ export default function PagesPage() {
         headerSlot
       )}
 
-      {/* Language Filter Tabs */}
       <div className="flex items-center justify-between gap-4 border-b border-gray-200 pb-3">
         <div className="flex items-center gap-2 overflow-x-auto">
           <button
@@ -93,7 +89,6 @@ export default function PagesPage() {
         </div>
       </div>
 
-      {/* Table */}
       <PageTable 
         pages={filteredPages}
         sortField={sortField}
@@ -104,7 +99,6 @@ export default function PagesPage() {
         isLoading={isLoading}
       />
 
-      {/* Empty State */}
       {!isLoading && filteredPages.length === 0 && (
         <div className="p-16 text-center bg-white rounded-xl border border-gray-200">
           <div className="w-16 h-16 bg-gray-50 rounded-full flex items-center justify-center mx-auto mb-4 border border-gray-100">
@@ -115,7 +109,6 @@ export default function PagesPage() {
         </div>
       )}
 
-      {/* Modals */}
       <AddPageModal 
         isOpen={addModal.isOpen}
         onClose={addModal.closeModal}
